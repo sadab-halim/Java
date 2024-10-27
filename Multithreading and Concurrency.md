@@ -79,4 +79,224 @@ All these are managed by JVM.
 - Synchronized overhead.
 - Testing and debugging is difficult.
 
-### Multitasking vs Multithreading
+## Ways to Create a Thread
+- implementing "Runnable" interface
+- extending "Thread" class
+
+### Creating a Thread using Runnable Interface
+#### Step 1: Create a Runnable Object
+- Create a class that implements 'Runnable' Interface.
+- Implement the 'run()' method to tell the task which thread has to do.
+  ```java
+  public class MultithreadingLearning implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("Code executed by thread: " + Thread.currentThread().getName());
+    }
+  }
+  ```
+#### Step 2: Start the Thread
+- Create an instance of class that implement 'Runnable'
+- Pass the Runnable object to the Thread Constructor
+- Start the thread
+  ```java
+  public class Main {
+    public static void main(String[] args) {
+        System.out.println("Going inside main method: " + Thread.currentThread().getName());
+        MultithreadingLearning runnableObj = new MultithreadingLearning();
+        Thread thread = new Thread(runnableObj);
+        thread.start();
+        System.out.println("Finish main method: " + Thread.currentThread().getName());
+    }
+  }
+  ```
+#### Output  
+```
+Going inside main method: main
+Finish main method: main
+code executed by thread: Thread-0
+```
+
+### Creating a Thread by extending Thread Class
+#### Step 1: Create a Thread Subclass
+- Create a class that extends 'Thread' class.
+- Override the 'run()' method to tell the task which thread has to do.
+  ```java
+  public class MultithreadingLearning extends Thread {
+    @Override
+    public void run() {
+        System.out.println("Code Executed by Thread: " + Thread.currentThread().getName());
+    }
+  }
+  ```
+  
+#### Step 2: Initiate and Start the Thread
+- Create an instance of the subclass
+- Call the start() method to begin this execution
+  ```java
+  public class Main {
+    public static void main(String[] args) {
+        System.out.println("Going inside main method: " + Thread.currentThread().getName());
+        MultithreadingLearning myThread = new MultithreadingLearning();
+        myThread.start();
+        System.out.println("Finish main method: " + Thread.currentThread().getName());
+    }
+  }
+  ```
+  
+#### Output
+```
+Going inside main method: main
+Finish main method: main
+Code Executed by Thread: Thread-0
+```
+
+### Why we have two ways to create threads?
+- A class can implement more than 1 interface
+- A class can extend only 1 class
+
+## Thread Lifecycle
+<img src ="images/thread-lifecycle.png" width="30%">
+
+| Lifecycle State | Description                                                                                                                                                                                                                                                                        |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| New | a. Thread has been created but not started <br> b. Its just an Object in memory.                                                                                                                                                                                                   |
+| Runnable | a. Thread is ready to run. b. Waiting for CPU time.                                                                                                                                                                                                                                |
+| Running | When thread start executing its code.                                                                                                                                                                                                                                              |
+| Blocked | a. Different scenarios where runnable thread goes into the blocking state: <br> i. I/O: like reading from a file or database. <br> ii. Lock required: If thread want to lock on a resource which is locked by other thread, it has to wait. <br> b. Releases all the MONITOR LOCKS |
+| Waiting | a. Thread goes into this state when we call the wait() method, makes it not runnable. <br> b. Its goes back to runnable, once we call notify() or notifyAll() method. <br> c. Releases all the MONITOR LOCK.                                                                       |
+| Timed Waiting | a. Thread waits for specific period of time and comes back to runnable state, after specific conditions met, like sleep(), join(). <br> b. Do not releases any MONITOR LOCKS |
+| Terminated | Life of thread is completed, it cannot be started back again. |
+
+Before seeing an example, lets first understand "MONITOR LOCK"
+
+### MONITOR LOCK
+It helps to make sure that only 1 thread goes inside the particular section of code (a synchronized block or method)
+
+```java
+public class MonitorLockExample {
+    public synchronized void task1() {
+      //do something
+      try {
+          System.out.println("Inside Task 1");
+          Thread.sleep(10000);
+      } catch (Exception e) {
+          //exception handling here
+      }
+    }
+    
+    public void task2() {
+        System.out.println("Task 2, but before synchronized");
+        synchronized (this) {
+            System.out.println("Task 2, Inside Synchronized");
+        }
+    }
+    
+    public void task3() {
+        System.out.println("Task 3");
+    }
+}
+```
+
+```java
+public static void main(String args[]) {
+    MonitorLockExample obj = new MonitorLockExample();
+    Thread t1 = new Thread(() -> obj.task1());
+    Thread t2 = new Thread(() -> obj.task2());
+    Thread t3 = new Thread(() -> obj.task3());
+    
+    t1.start();
+    t2.start();
+    t3.start();
+}
+```
+
+#### Example
+```java
+public class SharedResource {
+    boolean itemAvailable = false;
+    //synchronized put the monitor lock
+    public synchronized void addItem() {
+        itemAvailable = true;
+        System.out.println("Item added by: " + Thread.currentThread().getName() + " and invoking all threads which are waiting");
+        notifyAll();
+    }
+    
+    public synchronized void consumeItem() {
+        System.out.println("ConsumeItem method invoked by: " + Thread.currentThread().getName());
+        //using while loop to avoid "spurious wake-up", sometimes because of system noise
+        while(itemAvailable) {
+            try {
+                System.out.println("Thread " + Thread.currentThread().getName() + " is waiting now.");
+            } catch (Exception e) {
+                //handle exception here
+            }
+        }
+      System.out.println("Item Consumed By: " + Thread.currentThread().getName());
+      itemAvailable = false;
+    }
+}
+```
+
+```java
+public class ProduceTask implements Runnable {
+    SharedResource sharedResource;
+    
+    ProduceTask(SharedResource resource) {
+        this.sharedResource = resource;
+    }
+    
+    @Override
+    public void run() {
+        System.out.println("Producer Thread: " + Thread.currentThread().getName());
+        try {   
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            //handle any exception here
+        }
+        sharedResource.addItem();
+    }
+}
+```
+
+```java
+public class ConsumeTask implements Runnable {
+    SharedResource sharedResource;
+    
+    ConsumeTask(SharedResource resource) {
+        this.sharedResource = resource;
+    }
+    
+    @Override
+    public void run() {
+        System.out.println("Consumer thread: " + Thread.currentThread().getName());
+        sharedResource.consumeItem();
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Main method start");
+        SharedResource sharedResource = new SharedResource();
+        //producer thread
+        Thread producerThread = new Thread(new ProduceTask(sharedResource));
+        //consumer thread
+        Thread consumerThread = new Thread(new ConsumeTask(sharedResource));
+        //thread is in "RUNNABLE state"
+        producerThread.start();
+        consumerThread.start();
+        
+        System.out.println("Main method end");
+    }
+}
+```
+
+Or use Lambda Expression, instead of creating ProduceTask and ConsumeTask class
+```java
+Thread consumerThread = new Thread(() -> {
+   System.out.println("Consumer Thread: " + Thread.currentThread().getName());
+   sharedResource.consumeItem();
+});
+```
