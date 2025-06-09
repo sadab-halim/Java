@@ -510,9 +510,651 @@ class Task implements Runnable {
 
 **Explanation**: The main thread will pause its execution after starting `t1` and `t2` until `t1` completes, then it will wait for `t2` to complete, and only then will it print "All tasks completed."
 
+### Executor Framework (Thread Pools)
+Directly managing threads (creating, starting, stopping) for every task is inefficient and resource-intensive, especially for applications with many short-lived tasks. Thread Pools address this by managing a pool of reusable threads. The Executor Framework (introduced in Java 5) is the primary way to use thread pools.
+- `Executor`: A simple interface for executing `Runnable` tasks.
+- `ExecutorService`: An extension of `Executor` that provides methods for managing the lifecycle of the executor, submitting tasks, and obtaining results.
+- `Executors`: A utility class that provides factory methods for commonly used ExecutorService configurations.
+
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.ArrayList;
+
+// Advanced Example: ExecutorService (Thread Pool)
+class MyTask implements Runnable {
+    private String name;
+
+    public MyTask(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " executing " + name);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println(Thread.currentThread().getName() + " finished " + name);
+    }
+}
+
+class MyCallable implements Callable<String> {
+    private String name;
+
+    public MyCallable(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String call() throws Exception {
+        System.out.println(Thread.currentThread().getName() + " executing callable " + name);
+        try {
+            Thread.sleep(150);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InterruptedException("Callable was interrupted!");
+        }
+        System.out.println(Thread.currentThread().getName() + " finished callable " + name);
+        return "Result from " + name;
+    }
+}
+
+public class ExecutorServiceExample {
+    public static void main(String[] args) throws Exception {
+        // 1. Fixed Thread Pool: A fixed number of threads always available
+        ExecutorService fixedPool = Executors.newFixedThreadPool(3);
+        System.out.println("\n--- Fixed Thread Pool Example ---");
+        for (int i = 0; i < 5; i++) {
+            fixedPool.execute(new MyTask("Task-" + (i + 1)));
+        }
+        fixedPool.shutdown(); // Initiates an orderly shutdown
+        fixedPool.awaitTermination(1, TimeUnit.SECONDS); // Wait for tasks to complete
+
+        // 2. Cached Thread Pool: Creates new threads as needed, reuses idle ones.
+        // Good for applications with many short-lived tasks.
+        ExecutorService cachedPool = Executors.newCachedThreadPool();
+        System.out.println("\n--- Cached Thread Pool Example ---");
+        List<Future<String>> futures = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            futures.add(cachedPool.submit(new MyCallable("Callable-" + (i + 1))));
+        }
+        for (Future<String> future : futures) {
+            System.out.println("Callable Result: " + future.get()); // .get() blocks until result is available
+        }
+        cachedPool.shutdown();
+        cachedPool.awaitTermination(1, TimeUnit.SECONDS);
+
+        // 3. Single Thread Executor: A single thread for sequential execution of tasks
+        ExecutorService singlePool = Executors.newSingleThreadExecutor();
+        System.out.println("\n--- Single Thread Executor Example ---");
+        for (int i = 0; i < 3; i++) {
+            singlePool.execute(() -> System.out.println(Thread.currentThread().getName() + " processing single task."));
+        }
+        singlePool.shutdown();
+        singlePool.awaitTermination(1, TimeUnit.SECONDS);
+
+        // 4. Scheduled Thread Pool: For scheduling tasks to run after a delay or periodically
+        // (Not shown in detail here, but useful for recurring tasks)
+        // ScheduledExecutorService scheduledPool = Executors.newScheduledThreadPool(1);
+        // scheduledPool.scheduleAtFixedRate(new MyTask("Scheduled Task"), 0, 500, TimeUnit.MILLISECONDS);
+        // scheduledPool.shutdown(); // Don't forget to shut down
+    }
+}
+```
+
+#### Explanation
+- `execute(Runnable)`: Submits a `Runnable` task for execution. It doesn't return a result.
+- `submit(Callable)`: Submits a `Callable` task (which can return a result and throw an exception) and returns a `Future` object.
+- `Future`: Represents the result of an asynchronous computation. `future.get()` blocks until the task completes and its result is available.
+- `shutdown()`: Initiates an orderly shutdown, allowing previously submitted tasks to complete, but no new tasks will be accepted.
+- `awaitTermination()`: Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
 
 ---
 
+### Locks (Explicit Locks)
+The `java.util.concurrent.locks` package provides more flexible and powerful locking mechanisms than the `synchronized` keyword. `ReentrantLock` is a common example.
 
+```java
+import java.util.concurrent.locks.ReentrantLock;
 
+// Advanced Example: ReentrantLock
+class SharedResource {
+    private int count = 0;
+    private final ReentrantLock lock = new ReentrantLock();
 
+    public void increment() {
+        lock.lock(); // Acquire the lock
+        try {
+            count++;
+            System.out.println(Thread.currentThread().getName() + " incremented to: " + count);
+        } finally {
+            lock.unlock(); // Release the lock in a finally block
+        }
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        SharedResource resource = new SharedResource();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 5; i++) {
+                resource.increment();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        Thread t1 = new Thread(task, "Thread-1");
+        Thread t2 = new Thread(task, "Thread-2");
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Final Count with ReentrantLock: " + resource.getCount());
+    }
+}
+```
+
+#### Explanation
+- `ReentrantLock` offers more features than `synchronized`, such as:
+  - **Fairness**: Can optionally provide a fair ordering policy (threads acquire the lock in the order they requested it).
+  - `tryLock()`: Attempts to acquire the lock without blocking.
+  - `lockInterruptibly()`: Acquires the lock unless the current thread is interrupted.
+- It's crucial to release the lock in a `finally` block to prevent deadlocks if an exception occurs within the `try` block.
+
+### Atomic Variables
+The `java.util.concurrent.atomic` package provides classes that support atomic operations on single variables. These classes use low-level, hardware-supported atomic instructions (like compare-and-swap - CAS) to achieve thread-safe operations without explicit
+
+```java
+import java.util.concurrent.atomic.AtomicInteger;
+
+// Advanced Example: AtomicInteger
+class AtomicCounter {
+    private AtomicInteger count = new AtomicInteger(0);
+
+    public void increment() {
+        count.incrementAndGet(); // Atomically increments and gets the new value
+        System.out.println(Thread.currentThread().getName() + " incremented to: " + count.get());
+    }
+
+    public int getCount() {
+        return count.get();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        AtomicCounter atomicCounter = new AtomicCounter();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 5; i++) {
+                atomicCounter.increment();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        Thread t1 = new Thread(task, "AtomicThread-1");
+        Thread t2 = new Thread(task, "AtomicThread-2");
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Final Count with AtomicInteger: " + atomicCounter.getCount());
+    }
+}
+```
+
+#### Explanation
+`AtomicInteger` ensures that `incrementAndGet()` is an atomic operation, meaning it completes as a single, indivisible unit, even with multiple threads. This avoids the need for `synchronized` or `ReentrantLock` for simple counter operations. Other atomic classes include `AtomicLong`, `AtomicBoolean`, `AtomicReference`, etc.
+
+### Concurrent Collections
+The `java.util.concurrent` package also offers thread-safe collection classes that are optimized for concurrent access, generally outperforming synchronized wrappers (like `Collections.synchronizedList()`) in highly concurrent environments.
+- `ConcurrentHashMap`: A thread-safe hash map that allows concurrent reads and concurrent writes to different segments of the map.
+- `CopyOnWriteArrayList`: A thread-safe variant of `ArrayList` where all mutative operations (add, set, remove, etc.) create a new copy of the underlying array. Reads do not require locking. Best for situations where reads vastly outnumber writes.
+- `BlockingQueue` implementations (e.g., `ArrayBlockingQueue`, `LinkedBlockingQueue`): Queues that block producers when the queue is full and consumers when the queue is empty. Ideal for producer-consumer patterns.
+
+```java
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.List;
+
+// Advanced Example: Concurrent Collections
+public class ConcurrentCollectionsExample {
+
+    public static void main(String[] args) throws InterruptedException {
+        // ConcurrentHashMap Example
+        System.out.println("\n--- ConcurrentHashMap Example ---");
+        Map<String, Integer> concurrentMap = new ConcurrentHashMap<>();
+        ExecutorService mapExecutor = Executors.newFixedThreadPool(5);
+
+        for (int i = 0; i < 10; i++) {
+            final int taskId = i;
+            mapExecutor.submit(() -> {
+                concurrentMap.put("Key-" + taskId, taskId);
+                System.out.println(Thread.currentThread().getName() + " put: Key-" + taskId + " -> " + taskId);
+            });
+        }
+        mapExecutor.shutdown();
+        mapExecutor.awaitTermination(1, TimeUnit.SECONDS);
+        System.out.println("ConcurrentHashMap size: " + concurrentMap.size());
+        System.out.println("ConcurrentHashMap: " + concurrentMap);
+
+        // CopyOnWriteArrayList Example
+        System.out.println("\n--- CopyOnWriteArrayList Example ---");
+        List<String> copyOnWriteList = new CopyOnWriteArrayList<>();
+        ExecutorService listExecutor = Executors.newFixedThreadPool(5);
+
+        listExecutor.submit(() -> {
+            copyOnWriteList.add("Item 1");
+            copyOnWriteList.add("Item 2");
+            System.out.println(Thread.currentThread().getName() + " added items. List: " + copyOnWriteList);
+        });
+
+        listExecutor.submit(() -> {
+            // Readers see the consistent state without contention
+            System.out.println(Thread.currentThread().getName() + " reading list: " + copyOnWriteList);
+            try {
+                Thread.sleep(50); // Give writer a chance to add
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            System.out.println(Thread.currentThread().getName() + " reading list again: " + copyOnWriteList);
+        });
+        listExecutor.shutdown();
+        listExecutor.awaitTermination(1, TimeUnit.SECONDS);
+
+        // BlockingQueue Example (Simple Producer-Consumer with ArrayBlockingQueue)
+        System.out.println("\n--- BlockingQueue Example ---");
+        BlockingQueue<String> queue = new ArrayBlockingQueue<>(5); // Capacity of 5
+
+        Runnable producer = () -> {
+            try {
+                for (int i = 0; i < 10; i++) {
+                    String data = "Data-" + i;
+                    queue.put(data); // Blocks if queue is full
+                    System.out.println(Thread.currentThread().getName() + " produced: " + data + ", Queue size: " + queue.size());
+                    Thread.sleep(100);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        };
+
+        Runnable consumer = () -> {
+            try {
+                for (int i = 0; i < 10; i++) {
+                    String data = queue.take(); // Blocks if queue is empty
+                    System.out.println(Thread.currentThread().getName() + " consumed: " + data + ", Queue size: " + queue.size());
+                    Thread.sleep(200);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        };
+
+        ExecutorService queueExecutor = Executors.newFixedThreadPool(2);
+        queueExecutor.submit(producer);
+        queueExecutor.submit(consumer);
+
+        queueExecutor.shutdown();
+        queueExecutor.awaitTermination(5, TimeUnit.SECONDS);
+    }
+}
+```
+
+#### Explanation:
+- `ConcurrentHashMap` allows multiple threads to read and write without blocking each other for independent segments.
+- `CopyOnWriteArrayList` is useful when iteration is much more common than modification. Iterators created on `CopyOnWriteArrayList` will not throw ConcurrentModificationException.
+- `BlockingQueue` simplifies producer-consumer patterns by handling the waiting/notification logic automatically. `put()` and `take()` methods block when necessary
+
+### `ThreadLocal`
+`ThreadLocal` variables provide a way to create a per-thread copy of a variable. Each thread that accesses a `ThreadLocal` variable gets its own independently initialized copy of the variable. This is useful for avoiding synchronization overhead when data doesn't need to be shared between threads but needs to be unique to a thread.
+
+```java
+// Advanced Example: ThreadLocal
+class UserContext {
+    public static final ThreadLocal<String> currentUser = new ThreadLocal<>();
+
+    public void processRequest(String userId) {
+        currentUser.set(userId); // Set user for this thread
+        System.out.println(Thread.currentThread().getName() + " processing for user: " + currentUser.get());
+        // Simulate some operations
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        anotherMethod();
+        currentUser.remove(); // Clean up the thread-local variable
+    }
+
+    private void anotherMethod() {
+        // Access current user without passing it around
+        System.out.println(Thread.currentThread().getName() + " in another method, user: " + currentUser.get());
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        UserContext service = new UserContext();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        executor.submit(() -> service.processRequest("UserA"));
+        executor.submit(() -> service.processRequest("UserB"));
+
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
+    }
+}
+```
+
+#### Explanation
+Each thread (from the `ExecutorService`) gets its own `currentUser` value. When `Thread-1` sets `currentUser` to "UserA", `Thread-2`'s currentUser remains unaffected. This avoids passing userId as a parameter through multiple method calls. It's crucial to `remove()` `ThreadLocal` variables to prevent memory leaks, especially in thread pools where threads are reused.
+
+## Common Pitfalls in Java Concurrency
+Writing correct and efficient concurrent programs is notoriously difficult. Here are some common pitfalls:
+- **Race Conditions**: Multiple threads accessing and modifying shared data concurrently without proper synchronization, leading to unpredictable results. (Example: `count++` without `synchronized` or `AtomicInteger`).
+- **Deadlock**: Two or more threads are blocked indefinitely, each waiting for the other to release a resource that it needs.
+
+```java
+// Simple Deadlock Example
+public class DeadlockExample {
+    private static Object lock1 = new Object();
+    private static Object lock2 = new Object();
+
+    public static void main(String[] args) {
+        // Thread 1 acquires lock1 then lock2
+        new Thread(() -> {
+            synchronized (lock1) {
+                System.out.println("Thread 1: Acquired lock1");
+                try { Thread.sleep(100); } catch (InterruptedException e) {}
+                System.out.println("Thread 1: Waiting for lock2");
+                synchronized (lock2) {
+                    System.out.println("Thread 1: Acquired lock2");
+                }
+            }
+        }).start();
+
+        // Thread 2 acquires lock2 then lock1
+        new Thread(() -> {
+            synchronized (lock2) {
+                System.out.println("Thread 2: Acquired lock2");
+                try { Thread.sleep(100); } catch (InterruptedException e) {}
+                System.out.println("Thread 2: Waiting for lock1");
+                synchronized (lock1) {
+                    System.out.println("Thread 2: Acquired lock1");
+                }
+            }
+        }).start();
+    }
+}
+```
+
+**Resolution**: Consistent lock ordering. If both threads always try to acquire `lock1` then `lock2`, deadlock is avoided.
+- **Livelock**: Threads are not blocked but are continuously changing their state in response to other threads, preventing any actual progress.
+- **Starvation**: A thread repeatedly loses the race for a resource or CPU time and never gets to execute. This can happen with unfair locks or high-priority threads constantly monopolizing the CPU.
+- **Visibility Problems**: Changes made by one thread to shared variables are not visible to other threads due to caching, leading to stale data. (Resolved by `volatile` or `synchronized`).
+- **Lost Updates**: When multiple threads try to update the same shared variable, and one thread's update is overwritten by another, resulting in the update being "lost."
+- **Spurious Wakeups**: `wait()` can sometimes return even if `notify()` or `notifyAll()` was not called. Always use `wait()` inside a loop to re-check the condition: `while (condition is false) { wait(); }`.
+- **Not handling** `InterruptedException`: Threads can be interrupted while sleeping or waiting. It's important to catch `InterruptedException` and decide whether to stop the thread or re-interrupt it.
+- **Excessive Synchronization**: Over-synchronizing can lead to reduced parallelism and degraded performance. Identify critical sections precisely.
+- **Incorrect use of** `ThreadLocal` **in Thread Pools**: If `ThreadLocal` variables are not `remove()`d after use, they can retain old data when threads are reused from a pool, leading to subtle bugs or memory leaks.
+
+## Best Practices for Java Concurrency
+- **Prefer** `java.util.concurrent` **utilities**: Use `ExecutorService`, `ConcurrentHashMap`, `Atomic` classes, `BlockingQueue`, `CountDownLatch`, `Semaphore`, `CyclicBarrier`, etc., over lower-level `Thread` and `synchronized` where possible. They are designed for concurrency and are generally more robust and efficient.
+- **Minimize Shared Mutable State**: The less shared mutable state, the fewer synchronization problems. Consider immutability or thread confinement (`ThreadLocal`).
+- **Use Immutable Objects**: Immutable objects are inherently thread-safe because their state cannot change after creation.
+- **Identify Critical Sections**: Only synchronize the minimum amount of code necessary to protect shared mutable data.
+- **Consistent Lock Ordering**: To prevent deadlocks, ensure that if your application needs to acquire multiple locks, it always acquires them in a consistent, predefined order.
+- **Use** `volatile` **sparingly**: For simple flag variables where only visibility (not atomicity) is needed. Don't use it as a replacement for full synchronization.
+- **Handle** `InterruptedException` **gracefully**: Decide on a policy for handling interruptions (e.g., stop the thread, re-interrupt, log).
+- **Avoid Nested Locks**: Reduce the chance of deadlocks. If unavoidable, use `tryLock()` with timeouts to detect and recover from potential deadlocks.
+- **Proper Thread Pool Sizing**: Choose appropriate thread pool types and sizes based on the nature of your tasks (CPU-bound vs. I/O-bound).
+  - **CPU-bound tasks**: `corePoolSize = number of CPU cores + 1 (or simply number of CPU cores)`.
+  - **I/O-bound tasks**: `corePoolSize = number of CPU cores * (1 + (Wait Time / CPU Time))`.
+- **Shutdown** `ExecutorService`: Always call `shutdown()` or `shutdownNow()` to gracefully terminate the thread pool and release resources.
+- **Monitor and Profile**: Use tools like JConsole, VisualVM, or commercial APM tools to monitor thread activity, identify bottlenecks, and diagnose concurrency issues.
+- **Structured Concurrency (Java 21+)**: For newer Java versions, explore the concepts of Virtual Threads and Structured Concurrency, which aim to simplify concurrent programming by treating concurrent tasks as a single unit of work.
+
+## Performance Considerations
+While concurrency can improve performance, it also introduces overhead:
+- **Synchronization Overhead**: Acquiring and releasing locks, even with volatile or atomic operations, incurs a performance cost. Too much synchronization can lead to contention, where threads spend more time waiting for locks than doing actual work, potentially making a concurrent program slower than its sequential counterpart.
+- **Context Switching**: Switching the CPU's execution context from one thread to another has a cost (saving registers, loading new ones, cache invalidation). Excessive context switching (due to many threads or fine-grained tasks) can degrade performance.
+- **Cache Coherency**: In multi-core systems, when one core modifies data in its cache, other cores with cached copies of that data need to invalidate their caches and fetch the fresh data from main memory, leading to performance hits. `volatile` variables specifically interact with this.
+- **Memory Footprint**: Each thread requires its own stack space. Creating too many threads can exhaust memory. Thread pools mitigate this by reusing threads.
+- **False Sharing**: Occurs when different threads access independent variables that happen to reside in the same cache line. Modifying one variable invalidates the entire cache line for other cores, even though they are accessing different data. This can be mitigated by careful data structure design or padding.
+- **Amdahl's Law**: A formula that states the theoretical speedup achievable by a parallel program is limited by the sequential portion of the program. Even with infinite processors, the speedup can't exceed `1 / (1 - P)`, where `P` is the parallelizable portion. This means focusing on parallelizing the largest, most time-consuming parts is crucial.
+
+---
+
+# Introduction: Deeper Thread Control
+## Importance
+- **Thread Joining**: Allows one thread to wait for another thread to complete its execution. This is vital for tasks that have dependencies, ensuring that results from one task are ready before another begins.
+- **Daemon Threads**: Provides a mechanism for background, non-critical services. They are automatically terminated by the JVM when all non-daemon threads have finished, preventing the JVM from waiting indefinitely for background tasks.
+- **Thread Priority**: Offers a hint to the thread scheduler about the relative importance of a thread, potentially influencing which thread gets CPU time when multiple threads are runnable.
+
+## Thread Joining (`join()` method)
+The `join()` method of the `Thread` class allows a calling thread to pause its execution until the thread on which `join()` is called terminates. It's a way to establish a **happens-before** relationship: all actions in the joined thread happen-before the calling thread resumes execution
+
+### Overview and Importance
+Imagine you have a main task that relies on the results of several sub-tasks performed by other threads. Without `join()`, the main task might proceed before the sub-tasks are complete, leading to incorrect results or errors. `join()` provides a simple, effective way to synchronize the completion of threads.
+
+#### Syntax
+```java
+threadObject.join();
+threadObject.join(long millis); // Waits for up to 'millis' milliseconds
+threadObject.join(long millis, int nanos); // Waits for up to 'millis' milliseconds + 'nanos' nanoseconds
+```
+
+The `join()` methods can throw an `InterruptedException` if the calling thread is interrupted while waiting
+
+### Use Cases and Implementation
+#### Beginner Level: Basic Synchronization
+```java
+// Beginner Example: Basic Thread Joining
+class SimpleWorker implements Runnable {
+    private String name;
+    private long delay;
+
+    public SimpleWorker(String name, long delay) {
+        this.name = name;
+        this.delay = delay;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(name + " started.");
+        try {
+            Thread.sleep(delay); // Simulate work
+        } catch (InterruptedException e) {
+            System.out.println(name + " was interrupted.");
+            Thread.currentThread().interrupt(); // Re-interrupt the current thread
+        }
+        System.out.println(name + " finished.");
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Main thread started.");
+
+        Thread worker1 = new Thread(new SimpleWorker("Worker-1", 2000));
+        Thread worker2 = new Thread(new SimpleWorker("Worker-2", 1000));
+
+        worker1.start();
+        worker2.start();
+
+        try {
+            System.out.println("Main thread waiting for Worker-1 to finish...");
+            worker1.join(); // Main thread waits for worker1
+            System.out.println("Main thread waiting for Worker-2 to finish...");
+            worker2.join(); // Main thread waits for worker2
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted while joining.");
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("All workers completed. Main thread exiting.");
+    }
+}
+```
+
+**Explanation**: The `main` thread starts `worker1` and `worker2`. Without `join()`, "All workers completed. Main thread exiting." might be printed before the workers actually finish. By calling `worker1.join()` and `worker2.join()`, the main thread explicitly waits for each worker to complete its `run()` method before proceeding.
+
+#### Intermediate Level: Waiting with Timeout
+```java
+// Intermediate Example: Thread Joining with Timeout
+class TimedWorker implements Runnable {
+    private String name;
+    private long delay;
+
+    public TimedWorker(String name, long delay) {
+        this.name = name;
+        this.delay = delay;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(name + " started.");
+        try {
+            Thread.sleep(delay); // Simulate work
+            System.out.println(name + " completed its task.");
+        } catch (InterruptedException e) {
+            System.out.println(name + " was interrupted and finished early.");
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Main thread started.");
+
+        Thread importantTask = new Thread(new TimedWorker("ImportantTask", 5000)); // Takes 5 seconds
+        importantTask.start();
+
+        long startTime = System.currentTimeMillis();
+        try {
+            System.out.println("Main thread trying to join ImportantTask for 2 seconds...");
+            importantTask.join(2000); // Wait for a maximum of 2 seconds
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted while joining.");
+            Thread.currentThread().interrupt();
+        }
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        if (importantTask.isAlive()) {
+            System.out.println("ImportantTask is still running after " + elapsedTime + "ms. Main thread proceeds.");
+            // Optionally, try to interrupt the importantTask if it's taking too long
+            // importantTask.interrupt();
+        } else {
+            System.out.println("ImportantTask finished within " + elapsedTime + "ms. Main thread proceeds.");
+        }
+
+        System.out.println("Main thread exiting.");
+    }
+}
+```
+
+**Explanation**: The `main` thread tries to wait for `ImportantTask` for a maximum of 2 seconds. Since `ImportantTask` takes 5 seconds, the `main` thread will resume after 2 seconds without `ImportantTask` having completed. This is useful for implementing timeouts or for allowing a main thread to proceed with other work if a sub-task is taking too long.
+
+#### Advanced Level: Collaborative Shutdown
+```java
+// Advanced Example: Collaborative Shutdown with Joining
+import java.util.concurrent.atomic.AtomicBoolean;
+
+class DataProcessor implements Runnable {
+    private String name;
+    private AtomicBoolean running;
+
+    public DataProcessor(String name, AtomicBoolean running) {
+        this.name = name;
+        this.running = running;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(name + " started processing data.");
+        while (running.get() && !Thread.currentThread().isInterrupted()) {
+            // Simulate data processing
+            try {
+                System.out.println(name + ": Processing batch...");
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println(name + " interrupted while processing. Shutting down.");
+                Thread.currentThread().interrupt(); // Re-interrupt
+                break; // Exit loop
+            }
+        }
+        System.out.println(name + " finished processing and stopped.");
+    }
+}
+
+public class CollaborativeShutdown {
+    public static void main(String[] args) throws InterruptedException {
+        AtomicBoolean systemRunning = new AtomicBoolean(true); // Shared flag for graceful shutdown
+
+        Thread processor1 = new Thread(new DataProcessor("Processor-1", systemRunning));
+        Thread processor2 = new Thread(new DataProcessor("Processor-2", systemRunning));
+
+        processor1.start();
+        processor2.start();
+
+        // Let processors run for a while
+        Thread.sleep(3000);
+
+        System.out.println("Main thread signalling processors to shut down...");
+        systemRunning.set(false); // Signal all processors to stop gracefully
+
+        // Join to wait for them to complete their current tasks and exit
+        System.out.println("Main thread waiting for Processor-1 to join...");
+        processor1.join(1000); // Wait for up to 1 second for Processor-1
+
+        if (processor1.isAlive()) {
+            System.out.println("Processor-1 did not shut down gracefully in time. Interrupting.");
+            processor1.interrupt(); // Force interrupt if it doesn't shut down in time
+            processor1.join(); // Wait again for the interrupted thread to truly terminate
+        } else {
+            System.out.println("Processor-1 gracefully shut down.");
+        }
+
+        System.out.println("Main thread waiting for Processor-2 to join...");
+        processor2.join(1000);
+
+        if (processor2.isAlive()) {
+            System.out.println("Processor-2 did not shut down gracefully in time. Interrupting.");
+            processor2.interrupt();
+            processor2.join();
+        } else {
+            System.out.println("Processor-2 gracefully shut down.");
+        }
+
+        System.out.println("All system components shut down. Main thread exiting.");
+    }
+}
+```
+
+**Explanation**: This example demonstrates a common pattern for graceful application shutdown. The `main` thread signals worker threads to stop using a shared `AtomicBoolean`. It then uses `join()` with a timeout to wait for them to finish. If a worker doesn't stop within the timeout, the `main` thread can resort to `interrupt()`ing it, and then joining again to ensure termination. This pattern ensures resources are released properly and prevents the main application from hanging.
+
+### Common Pitfalls with `join()`
