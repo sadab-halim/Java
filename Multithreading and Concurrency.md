@@ -1158,3 +1158,411 @@ public class CollaborativeShutdown {
 **Explanation**: This example demonstrates a common pattern for graceful application shutdown. The `main` thread signals worker threads to stop using a shared `AtomicBoolean`. It then uses `join()` with a timeout to wait for them to finish. If a worker doesn't stop within the timeout, the `main` thread can resort to `interrupt()`ing it, and then joining again to ensure termination. This pattern ensures resources are released properly and prevents the main application from hanging.
 
 ### Common Pitfalls with `join()`
+- **Deadlock**: If thread A joins thread B, and thread B somehow tries to join thread A (directly or indirectly), it will result in a deadlock.
+- **Indefinite Waiting**: Calling `join()` without a timeout on a thread that never terminates will cause the calling thread to wait indefinitely.
+- `InterruptedException` **Handling**: Forgetting to handle `InterruptedException` or handling it improperly can lead to unexpected behavior or hide bugs. Always `Thread.currentThread().interrupt();` if you catch it and can't fully handle it, so that higher-level code can be aware of the interruption.
+
+### Best Practices for `join()`
+- **Use with Timeout**: For most real-world scenarios, use `join(long millis)` to avoid indefinite waits and build more resilient applications.
+- **Handle** `InterruptedException`: Always wrap `join()` calls in a `try-catch (InterruptedException e)` block.
+- **Clean Shutdown**: `join()` is excellent for waiting for worker threads to complete their current tasks during a graceful application shutdown.
+- **Prefer Higher-Level Constructs**: For complex task dependencies and orchestrations, consider `ExecutorService` with `Future` objects (`future.get()` also effectively joins a task), `CountDownLatch`, or `CyclicBarrier` from `java.util.concurrent` for more structured approaches.
+
+## Daemon Threads
+A **daemon thread** is a thread that runs in the background and provides services to user threads (non-daemon threads). The Java Virtual Machine (JVM) terminates itself when the only threads running are daemon threads.
+
+### Overview and Importance
+Think of daemon threads as background workers for the JVM itself, or for your application's internal services. For example, the garbage collector is a daemon thread. If you have a task that doesn't need to prevent the application from exiting (e.g., logging, monitoring, temporary file cleanup), it's a good candidate for a daemon thread.
+
+#### Key Characteristics:
+- **JVM Shutdown**: The JVM does **not** wait for daemon threads to finish. If all user threads die, daemon threads are abruptly terminated, without guaranteed `finally` blocks being executed or resources being released.
+- **Service Providers**: They typically provide services to other threads.
+- **Created by User Threads**: You can explicitly mark a thread as a daemon thread
+
+#### Syntax
+```java
+threadObject.setDaemon(true); // Must be called BEFORE starting the thread
+```
+
+You can check if a thread is a daemon thread using `threadObject.isDaemon()`
+
+### Use Cases and Implementation
+#### Beginner Level: Basic Daemon Thread
+```java
+// Beginner Example: Basic Daemon Thread
+class DaemonTask implements Runnable {
+    @Override
+    public void run() {
+        while (true) { // This thread will run indefinitely
+            System.out.println(Thread.currentThread().getName() + " is running (daemon).");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println(Thread.currentThread().getName() + " interrupted.");
+                break;
+            }
+        }
+        System.out.println(Thread.currentThread().getName() + " finished."); // This might not be printed
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("Main thread started.");
+
+        Thread userThread = new Thread(() -> {
+            System.out.println(Thread.currentThread().getName() + " is a user thread, doing some work.");
+            try {
+                Thread.sleep(2000); // Simulate user thread work
+            } catch (InterruptedException e) {
+                System.currentThread().interrupt();
+            }
+            System.out.println(Thread.currentThread().getName() + " finished.");
+        }, "UserThread");
+
+
+        Thread daemonThread = new Thread(new DaemonTask(), "DaemonThread");
+        daemonThread.setDaemon(true); // Mark as daemon BEFORE starting
+
+        userThread.start();
+        daemonThread.start();
+
+        // Main thread finishes its work and then exits,
+        // which will cause the JVM to exit, terminating DaemonThread.
+        System.out.println("Main thread exiting.");
+    }
+}
+```
+
+**Output Observation**: <br>
+You will observe "DaemonThread is running (daemon)." repeatedly printed for a few seconds, then "UserThread finished.", and finally "Main thread exiting." The "DaemonThread finished." message will likely not be printed because the JVM terminates it abruptly as soon as the `UserThread` (the last non-daemon thread) finishes
+
+**Explanation**: <br>
+The `DaemonTask` is an infinite loop, normally preventing the JVM from exiting. However, by setting `daemonThread.setDaemon(true)`, we tell the JVM that this thread is not critical. When the `UserThread` (a non-daemon thread) completes, there are no more active user threads, so the JVM terminates, taking `daemonThread` with it.
+
+#### Intermediate Level: Logging Service
+```java
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+// Intermediate Example: Daemon Thread for Logging Service
+class LogService implements Runnable {
+    private final BlockingQueue<String> logQueue = new ArrayBlockingQueue<>(100);
+    private volatile boolean running = true;
+    private PrintWriter writer;
+
+    public LogService(String logFile) throws IOException {
+        writer = new PrintWriter(new FileWriter(logFile, true), true); // true for append, true for auto-flush
+    }
+
+    public void log(String message) {
+        try {
+            logQueue.put(message); // Blocks if queue is full
+        } catch (InterruptedException e) {
+            System.err.println("LogService: Failed to queue message: " + message);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void stopService() {
+        running = false;
+        // Optionally add a "poison pill" to the queue to unblock take()
+        log("STOP_LOGGING_SIGNAL");
+    }
+
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " starting log service.");
+        while (running || !logQueue.isEmpty()) { // Process remaining messages even after 'running' is false
+            try {
+                String message = logQueue.take(); // Blocks if queue is empty
+                if ("STOP_LOGGING_SIGNAL".equals(message)) {
+                    // This is our 'poison pill' to allow exiting gracefully
+                    System.out.println(Thread.currentThread().getName() + " received stop signal.");
+                    break;
+                }
+                writer.println(Thread.currentThread().getName() + " writing: " + message);
+                // System.out.println(Thread.currentThread().getName() + " wrote: " + message); // For console visibility
+            } catch (InterruptedException e) {
+                System.err.println(Thread.currentThread().getName() + " interrupted while logging.");
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        writer.close();
+        System.out.println(Thread.currentThread().getName() + " log service stopped and writer closed.");
+    }
+
+    public static void main(String[] args) throws InterruptedException, IOException {
+        System.out.println("Main thread started.");
+        LogService logger = new LogService("application.log");
+
+        Thread logThread = new Thread(logger, "LogDaemon");
+        logThread.setDaemon(true); // Crucial: make it a daemon
+        logThread.start();
+
+        // Simulate application work
+        for (int i = 0; i < 5; i++) {
+            logger.log("Application event " + i);
+            Thread.sleep(300);
+        }
+
+        System.out.println("Main thread finished its work. User threads will exit.");
+        // We don't explicitly call logger.stopService() or logThread.join() here.
+        // The daemon thread will be terminated by the JVM.
+        // If we wanted a graceful shutdown with guaranteed log flush, it shouldn't be a daemon.
+    }
+}
+```
+
+**Explanation**: <br>
+This `LogService` acts as a background logger. Messages are queued, and the `LogService` thread processes them. By making it a daemon thread, we ensure that the application won't hang waiting for the logger to finish if the main application threads have completed. However, a significant drawback is that if the JVM exits abruptly, the `writer.close()` might not be called, and some buffered log messages might be lost. If guaranteed delivery is needed, it should be a user thread, and you'd need to explicitly `join()` it during shutdown.
+
+#### Advanced Level: Resource Cleanup (with caution)
+```java
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+// Advanced Example: Daemon Thread for Temp File Cleanup (use with extreme caution)
+class TempFileCleaner implements Runnable {
+    private File tempDir;
+    private long cleanupIntervalMillis;
+    private volatile boolean running = true;
+
+    public TempFileCleaner(String dirPath, long cleanupIntervalMillis) {
+        this.tempDir = new File(dirPath);
+        if (!tempDir.exists()) {
+            tempDir.mkdirs();
+        }
+        this.cleanupIntervalMillis = cleanupIntervalMillis;
+        System.out.println("TempFileCleaner initialized for: " + tempDir.getAbsolutePath());
+    }
+
+    public void stop() {
+        running = false;
+    }
+
+    private void performCleanup() {
+        File[] files = tempDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (System.currentTimeMillis() - file.lastModified() > TimeUnit.MINUTES.toMillis(1)) { // Older than 1 min
+                    if (file.delete()) {
+                        System.out.println(Thread.currentThread().getName() + ": Deleted old temp file: " + file.getName());
+                    } else {
+                        System.err.println(Thread.currentThread().getName() + ": Failed to delete temp file: " + file.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " starting temp file cleanup service.");
+        while (running && !Thread.currentThread().isInterrupted()) {
+            performCleanup();
+            try {
+                Thread.sleep(cleanupIntervalMillis);
+            } catch (InterruptedException e) {
+                System.out.println(Thread.currentThread().getName() + " interrupted, stopping cleanup.");
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        System.out.println(Thread.currentThread().getName() + " temp file cleanup service stopped.");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        String tempDirPath = System.getProperty("java.io.tmpdir") + File.separator + "my_app_temp";
+        System.out.println("Temp directory: " + tempDirPath);
+
+        // Simulate creating some temp files
+        new File(tempDirPath).mkdirs();
+        try {
+            new File(tempDirPath, "tempfile1.tmp").createNewFile();
+            Thread.sleep(100);
+            new File(tempDirPath, "tempfile2.tmp").createNewFile();
+            Thread.sleep(100);
+            new File(tempDirPath, "tempfile3.tmp").createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        TempFileCleaner cleaner = new TempFileCleaner(tempDirPath, 2000); // Clean every 2 seconds
+        Thread cleanerThread = new Thread(cleaner, "TempCleanerDaemon");
+        cleanerThread.setDaemon(true); // Make it a daemon
+        cleanerThread.start();
+
+        System.out.println("Main application running... (will exit in 5 seconds)");
+        Thread.sleep(5000); // Main application runs for 5 seconds
+
+        System.out.println("Main thread exiting. Daemon cleaner will be terminated.");
+        // No explicit shutdown for cleaner. It will be abruptly killed.
+    }
+}
+```
+
+**Explanation:** <br>
+This example shows a daemon thread cleaning up old temporary files. While it might seem convenient, using a daemon thread for resource cleanup carries significant risk. If the JVM exits abruptly, the `run()` method is not guaranteed to finish, meaning `performCleanup()` might not run one last time, potentially leaving uncleaned files. For critical cleanup, it's safer to use a non-daemon thread and explicitly manage its shutdown (e.g., using a shutdown hook or `join()`).
+
+### Common Pitfalls with Daemon Threads
+- **No Guaranteed Cleanup**: The biggest pitfall. Daemon threads are terminated abruptly. `finally` blocks are not guaranteed to execute. This means resources like open files, network connections, or database connections held by daemon threads might not be closed properly, leading to resource leaks.
+- **Data Loss**: If a daemon thread is responsible for persisting data (e.g., logging, saving state), data loss can occur if the JVM exits before the daemon thread finishes writing.
+- **Unexpected Termination**: Debugging can be harder as threads might disappear without completing their logic.
+- `setDaemon()` **Order**: Calling `setDaemon(true)` after `start()` will result in an `IllegalThreadStateException`.
+
+### Best Practices for Daemon Threads
+- **Use for Non-Critical Background Services**: Only use daemon threads for tasks that don't need to prevent the JVM from exiting and where incomplete execution or resource leakage is acceptable or harmless. Examples include garbage collection, low-priority logging where some loss is acceptable, or monitoring agents.
+- **No Critical Resource Handling**: Avoid using daemon threads for tasks that manage critical resources like file I/O, database connections, or network sockets, unless you have robust external mechanisms to handle potential resource leaks.
+- **Graceful Shutdown for Critical Background Tasks**: If a background task must complete its work or release resources upon application shutdown, it should be a user thread. Implement a graceful shutdown mechanism (e.g., `volatile` flag, `ExecutorService` shutdown, shutdown hooks).
+- **Always Call** `setDaemon(true)` **Before** `start()`: This is a strict requirement.
+
+## Thread Priority
+**Thread priority** is a hint to the thread scheduler about the relative importance of a thread. Threads with higher priority are given preference over threads with lower priority for CPU time.
+
+### Overview and Importance
+The Java specification defines 10 priority levels, from `MIN_PRIORITY` (1) to `MAX_PRIORITY` (10), with `NORM_PRIORITY` (5) being the default.
+
+**Constants in** `java.lang.Thread`:
+- `Thread.MIN_PRIORITY = 1`
+- `Thread.NORM_PRIORITY = 5`
+- `Thread.MAX_PRIORITY = 10`
+
+#### Syntax
+```java
+threadObject.setPriority(int newPriority); // newPriority must be between MIN_PRIORITY and MAX_PRIORITY
+```
+
+You can get a thred's priority using `threadObject.getPriority()`
+
+#### Importance (with caveats):
+Thread priority is highly dependent on the underlying operating system's scheduling policies.
+- **OS Dependency**: The JVM maps Java thread priorities to native OS thread priorities. How this mapping occurs and how the OS scheduler interprets these priorities varies between operating systems (e.g., Windows vs. Linux).
+- **Non-Guaranteed**: Java thread priorities are not guarantees. They are merely hints. A higher-priority thread is more likely to be scheduled before a lower-priority thread, but it's not guaranteed to always run first or get more CPU time.
+- **Fairness**: Some OS schedulers might prioritize fairness over strict priority adherence to prevent starvation of lower-priority threads.
+
+### Use Cases and Implementation
+#### Beginner Level: Setting and Observing Priority
+```java
+// Beginner Example: Setting and Observing Thread Priority
+class PriorityTask implements Runnable {
+    private String name;
+    private int priority;
+    private volatile long counter = 0;
+
+    public PriorityTask(String name, int priority) {
+        this.name = name;
+        this.priority = priority;
+    }
+
+    @Override
+    public void run() {
+        Thread.currentThread().setPriority(priority); // Set priority for the current thread
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < 100) { // Run for 100ms
+            counter++;
+        }
+        System.out.println(name + " (Priority: " + Thread.currentThread().getPriority() + ") counted " + counter + " in 100ms.");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("Main thread started.");
+
+        Thread lowPriority = new Thread(new PriorityTask("LowPriority", Thread.MIN_PRIORITY), "LowPrioThread");
+        Thread normalPriority = new Thread(new PriorityTask("NormalPriority", Thread.NORM_PRIORITY), "NormalPrioThread");
+        Thread highPriority = new Thread(new PriorityTask("HighPriority", Thread.MAX_PRIORITY), "HighPrioThread");
+
+        // Start all threads simultaneously
+        lowPriority.start();
+        normalPriority.start();
+        highPriority.start();
+
+        // Wait for them to finish (optional, but good for clean output)
+        lowPriority.join();
+        normalPriority.join();
+        highPriority.join();
+
+        System.out.println("Main thread exiting.");
+    }
+}
+```
+
+**Explanation:** <br>
+You will likely see that `HighPriority` counted significantly more than `LowPriority`, and `NormalPriority` somewhere in between. However, on some systems or with different workloads, the difference might be negligible or inconsistent. This demonstrates that priority is a hint, not a strict guarantee.
+
+#### Intermediate Level: Background vs Foreground Tasks
+```java
+// Intermediate Example: Priority for Background vs. Foreground
+class WorkSimulator implements Runnable {
+    private String type;
+    private long iterationCount;
+
+    public WorkSimulator(String type) {
+        this.type = type;
+        this.iterationCount = 0;
+    }
+
+    @Override
+    public void run() {
+        long startTime = System.currentTimeMillis();
+        System.out.println(Thread.currentThread().getName() + " (" + type + ") started.");
+        while (System.currentTimeMillis() - startTime < 2000) { // Run for 2 seconds
+            // Simulate CPU-bound work
+            for (int i = 0; i < 10000; i++) {
+                double result = Math.sin(Math.cos(Math.tan(i))); // Expensive calculation
+            }
+            iterationCount++;
+        }
+        System.out.println(Thread.currentThread().getName() + " (" + type + ") finished after " + iterationCount + " iterations.");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("Main thread started.");
+
+        // Foreground task (e.g., UI updates, critical data processing)
+        Thread foregroundTask = new Thread(new WorkSimulator("Foreground"), "ForegroundTask");
+        foregroundTask.setPriority(Thread.MAX_PRIORITY); // High priority
+
+        // Background task (e.g., cleanup, less critical data processing)
+        Thread backgroundTask = new Thread(new WorkSimulator("Background"), "BackgroundTask");
+        backgroundTask.setPriority(Thread.MIN_PRIORITY); // Low priority
+
+        foregroundTask.start();
+        backgroundTask.start();
+
+        foregroundTask.join();
+        backgroundTask.join();
+
+        System.out.println("All tasks finished. Main thread exiting.");
+    }
+}
+```
+
+**Explanation**: <br>
+In this example, we attempt to give a "foreground" task higher priority over a "background" task that performs similar CPU-bound work. On most systems, the ForegroundTask will likely complete significantly more iterations. This pattern is sometimes used in applications where responsiveness for certain tasks (like UI) is more important than background processing.
+
+#### Advanced Level: When Priorities Can Help (Carefully)
+While general advice is to use priorities sparingly, there are niche scenarios where they might offer a slight performance edge if applied carefully, primarily in highly specialized real-time or embedded systems, or when profiling reveals consistent benefits.
+
+For instance, if you have a producer-consumer setup and your consumers are constantly lagging, giving consumers a slightly higher priority might help them process items faster, reducing the queue backlog. However, this is usually better addressed by optimizing the processing logic or scaling consumer threads.
+
+General recommendation for advanced usage: In enterprise-level Java applications, relying heavily on `Thread.setPriority()` is often discouraged due to its platform-dependency and unpredictable behavior. Modern Java concurrency features like `ExecutorService` and its various types (e.g., `newFixedThreadPool`, `newWorkStealingPool`) combined with well-designed task decomposition and efficient algorithms are far more effective and reliable for performance optimization than tinkering with thread priorities.
+
+### Common Pitfalls with Thread Priority
+- **Platform Dependency**: The biggest pitfall. Behavior is highly inconsistent across operating systems and JVM implementations. Code that works well on one OS might not on another.
+- **Starvation**: Setting priorities aggressively can lead to lower-priority threads never getting CPU time (starvation), especially on non-preemptive or poorly configured schedulers.
+- **Debugging Difficulty**: Priority-related bugs can be hard to reproduce and debug because they depend on unpredictable scheduling.
+- **False Sense of Control**: Gives developers a false sense of precise control over thread execution, which the JVM and OS ultimately manage.
+- **Not a Replacement for Synchronization**: Priorities do not guarantee thread safety. A higher-priority thread accessing shared resources still needs proper synchronization (`synchronized`, `Lock`, `Atomic`) to prevent race conditions.
+
+### Best Practices for Thread Priority
+- **Avoid Using Unless Absolutely Necessary**: Generally, avoid `Thread.setPriority()` in most enterprise applications. It's often a premature optimization and can introduce more problems than it solves.
+- **Default Priority is Usually Fine**: Let threads run at `NORM_PRIORITY` (5) unless you have a compelling, highly specialized reason not to.
+- **Test Thoroughly on Target Platforms**: If you must use priorities, test your application extensively on all target operating systems and hardware configurations.
+- **Prefer Task-Based Concurrency**: Focus on proper task decomposition, efficient algorithms, and utilizing the `java.util.concurrent` package's robust features (thread pools, concurrent collections, `Future`s) for performance and responsiveness. These provide more reliable and portable control over concurrency.
+- **Don't Use for Thread Safety**: Priorities do not replace synchronization mechanisms.
+- **Consider Virtual Threads (Java 21+)**: With the advent of Virtual Threads (Project Loom), the concept of OS-level thread priority becomes even less relevant for most application developers. Virtual Threads are scheduled by the JVM, and their scheduling is typically optimized for throughput rather than explicit priority.
+
+---
