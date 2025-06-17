@@ -4059,12 +4059,125 @@ public class CompletableFutureAdvanced {
 2. `CompletableFuture.anyOf(CompletableFuture<?>... cfs)`: Returns a new `CompletableFuture<Object>` that is completed when any of the given `CompletableFuture`s complete (either successfully or exceptionally). This is useful for "race" conditions, e.g., contacting multiple identical services and taking the response from the fastest one.
 3. **Timeout**: `CompletableFuture` itself doesn't have a built-in timeout method for its result. A common pattern to implement a timeout is using `applyToEither`. You create a "timeout future" that completes after a certain delay with an exception. Then, `applyToEither` will complete with the result of whichever future finishes first. If the original task is slower than the timeout future, the timeout future's exception will propagate.
 
-### Common Pitfalls with `CompleteableFuture`
+### Common Pitfalls with `CompletableFuture`
 - **Blocking Operations (misuse of** `join()`/`get()`): The primary advantage of `CompletableFuture` is non-blocking. Over-reliance on `join()` or `get()` defeats this purpose and turns your async code back into blocking code. Use them only when absolutely necessary (e.g., at the very end of your application's main flow, or for testing).
-  **Default** `ForkJoinPool.commonPool()` **overuse**: If you use `supplyAsync` or `runAsync` without specifying an `Executor`, the `ForkJoinPool.commonPool()` is used. This pool is shared by the entire JVM. If your tasks block heavily (e.g., I/O operations), they can starve the common pool and impact other asynchronous operations in your application or even other libraries using the same pool. Always consider using a custom `ExecutorService` for I/O-bound or long-running tasks.
-  **Ignoring Exceptions**: If you don't use `exceptionally()`, `handle()`, or explicitly call `join()`/`get()` on a `CompletableFuture` that completes exceptionally, the exception might be swallowed or only logged by the default `UncaughtExceptionHandler` of the thread pool, leading to silent failures.
-  Lifecycle Management: CompletableFutures don't automatically shut down their backing ExecutorService. You are responsible for shutting down any custom executors you create.
-- Asynchronous vs. Synchronous Methods (Async vs. non-Async):
-  Methods like thenApply run in the same thread that completed the previous stage, or on the main thread if the previous stage was already completed.
-  Methods like thenApplyAsync explicitly run their callback in an asynchronous manner, typically using the default ForkJoinPool.commonPool() or a provided Executor. Misunderstanding this can lead to unexpected thread usage or performance issues.
-  Deadlocks: While CompletableFuture itself is non-blocking, if a task within the CompletableFuture chain performs a blocking operation (like waiting for a Lock) that can lead to a deadlock with other tasks in the same limited-size thread pool, it can still cause problems.
+- **Default** `ForkJoinPool.commonPool()` **overuse**: If you use `supplyAsync` or `runAsync` without specifying an `Executor`, the `ForkJoinPool.commonPool()` is used. This pool is shared by the entire JVM. If your tasks block heavily (e.g., I/O operations), they can starve the common pool and impact other asynchronous operations in your application or even other libraries using the same pool. Always consider using a custom `ExecutorService` for I/O-bound or long-running tasks.
+- **Ignoring Exceptions**: If you don't use `exceptionally()`, `handle()`, or explicitly call `join()`/`get()` on a `CompletableFuture` that completes exceptionally, the exception might be swallowed or only logged by the default `UncaughtExceptionHandler` of the thread pool, leading to silent failures.
+- **Lifecycle Management**: `CompletableFuture`s don't automatically shut down their backing `ExecutorService`. You are responsible for shutting down any custom executors you create.
+- **Asynchronous vs. Synchronous Methods (Async vs. non-Async)**:
+    - Methods like thenApply run in the same thread that completed the previous stage, or on the main thread if the previous stage was already completed.
+    - Methods like `thenApplyAsync` explicitly run their callback in an asynchronous manner, typically using the default `ForkJoinPool.commonPool()` or a provided `Executor`. Misunderstanding this can lead to unexpected thread usage or performance issues.
+- **Deadlocks**: While `CompletableFuture` itself is non-blocking, if a task within the `CompletableFuture` chain performs a blocking operation (like waiting for a `Lock`) that can lead to a deadlock with other tasks in the same limited-size thread pool, it can still cause problems.
+
+### Best Practices for `CompletableFuture`
+- **Use custom `ExecutorService` for blocking/I/O tasks**: For any task that involves blocking I/O, database calls, or long computations, always use `CompletableFuture.supplyAsync(supplier, customExecutor)` or `CompletableFuture.runAsync(runnable, customExecutor)` with an `ExecutorService` specifically tuned for your application's I/O or CPU needs.
+- **Chain, Don't Block**: Embrace the fluent API to chain transformations and continuations. Avoid `get()` or `join()` until the absolute end of a workflow, if at all.
+- **Robust Error Handling**: Always include `exceptionally()` or `handle()` in your CompletableFuture chains to gracefully manage failures and provide fallback mechanisms.
+- **Choose** `Async` **suffic appropriately**:
+    - Use `thenApply`/`thenAccept` (without `Async`) when the work in the callback is very lightweight and can be done in the same thread as the preceding stage's completion.
+    - Use `thenApplyAsync`/`thenAcceptAsync` (with `Async`) when the callback itself performs significant work or blocking I/O, and you want it to run on a new (or pool) thread to avoid blocking the completion thread.
+- **Leverage**: `allOf()` and `anyOf()`: For parallel execution and synchronization points, these methods are powerful.
+- **Timeouts**: Implement timeouts for external calls or long-running operations to prevent indefinite waits and ensure resilience.
+- **Combine with** `ExecytorCompletionService` **(for mixed Future/CompletableFuture scenarios)**: If you have a mix of `Future` and `CompletableFuture` tasks and need to process results as they arrive, `ExecutorCompletionService` can be useful.
+- **Keep Lambdas Pure (Stateless)**: While not strictly a `CompletableFuture` rule, it's good practice for functional programming. Avoid mutable shared state within your lambda expressions passed to `CompletableFuture` methods, or ensure proper synchroniation if necessary.
+
+- ## Performance Considerations
+- **Thread Pool Overhead**: `CompletableFuture` relies on thread pools. The performance considerations for `ThreadPoolExecutor` (covered in the previous explanation) directly apply here. Incorrect pool sizing (too few/too many threads, wrong queue type) can degrade performance.
+- **Context Switching**: While `CompletableFuture` aims to be non-blocking, callbacks still execute on threads. If tasks are constantly switching between threads (e.g., many `thenApplyAsync` calls), context switching overhead can add up.
+- **Garbage Collection**: Chaining many `CompletableFuture`s can create many intermediate objects. While the JVM is efficient, be mindful of excessively long chains if memory becomes a concern.
+- **Overhead of** `CompletableFuture` **objects**: Each `CompletableFuture` object itself has a small memory footprint and processing overhead. For extremely simple, very short-lived tasks that are called millions of times, direct `Runnable`/`Executor.execute()` might be slightly faster, but the benefits of `CompletableFuture` (readability, composition) usually outweigh this.
+- **I/O vs. CPU Bound**: Proper segregation of I/O-bound tasks and CPU-bound tasks into different thread pools is crucial for optimal performance. Using a single `ForkJoinPool.commonPool()` for both will lead to suboptimal resource utilization.
+
+---
+
+## Introduction: Different Flavors of Thread Pools
+We will focus on the following topics:
+- `FixedThreadPool`: A pool with a constant number of threads.
+- `CachedThreadPool`: A flexible pool that grows and shrinks dynamically.
+- `SingleThreadExecutor`: A pool with a single worker therad.
+- `ForkJoinPool`: A specialized pool for "divide and conquer" algorithm, employing a work-stealing algorithm.
+- `WorkStealingPool` **(from** `Executors` **)**: A factory method that creates a `ForkJoinPool` using a work-stealing algorithm.
+
+## `FixedThreadPool`: The Steady Workhorse
+### Overview and Importance
+`FixedThreadPool` is an `ExecutorService` that uses a fixed number of threads. It's one of the simplest and most commonly used thread pool configurations.
+
+#### Key Characteristics:
+- **Fixed Size**: The number of threads in the pool is constant. If all threads are busy, new tasks wait in an unbounded queue.
+- **Unbounded Queue**: It uses an internal `LinkedBlockingQueue` with no capacity limit. This means tasks will accumulate indefinitely if they are submitted faster than the pool can process them.
+- **No Idle Thread Termination**: Threads in a `FixedThreadPool` (once created) will never be terminated due to idleness. They remain alive even if no tasks are available.
+
+**Importance**: `FixedThreadPool` is suitable for CPU-bound tasks where you want to limit the concurrent execution to the number of available CPU cores to prevent excessive context switching. It provides predictable resource consumption.
+
+### Syntax, Use Cases, and Implementation
+#### Syntax (via `Executors` factory):
+```java
+ExecutorService executor = Executors.newFixedThreadPool(int nThreads);
+```
+
+#### Underlying `ThreadPoolExecutor` configuration:
+```java
+// Essentially:
+new ThreadPoolExecutor(nThreads, nThreads,
+                       0L, TimeUnit.MILLISECONDS,
+                       new LinkedBlockingQueue<Runnable>());
+```
+
+#### Beginner Level: Basic CPU-Bound Task Execution
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+// Beginner Example: FixedThreadPool for CPU-bound tasks
+class CpuIntensiveTask implements Runnable {
+    private int taskId;
+    private long iterations;
+
+    public CpuIntensiveTask(int taskId, long iterations) {
+        this.taskId = taskId;
+        this.iterations = iterations;
+    }
+
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " executing CPU-intensive task " + taskId);
+        long sum = 0;
+        for (long i = 0; i < iterations; i++) {
+            sum += i; // Simulate CPU work
+        }
+        System.out.println(Thread.currentThread().getName() + " finished CPU-intensive task " + taskId + " (sum: " + sum + ")");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        int numberOfCores = Runtime.getRuntime().availableProcessors();
+        System.out.println("Number of CPU cores: " + numberOfCores);
+
+        // Create a fixed thread pool with the number of CPU cores
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfCores);
+
+        // Submit more tasks than threads to observe queueing
+        for (int i = 1; i <= numberOfCores * 2; i++) { // Submit double the number of tasks
+            executor.execute(new CpuIntensiveTask(i, 1_000_000_000L)); // Heavy computation
+        }
+
+        executor.shutdown();
+        System.out.println("Main: All tasks submitted. Waiting for completion.");
+        executor.awaitTermination(1, TimeUnit.MINUTES);
+        System.out.println("Main: All tasks completed.");
+    }
+}
+```
+
+**Explanation**: <br>
+By setting the pool size to `numberOfCores`, we aim to keep each CPU core busy with one task at a time, minimizing context switching. When more tasks are submitted than threads available, the excess tasks are queued in the `LinkedBlockingQueue` and executed as threads become free.
+
+### Common Pitfalls with `FixedThreadPool`
+- **Unbounded Queue leads to** `OutOfMemoryError`: If tasks are submitted at a rate significantly faster than they are processed, the `LinkedBlockingQueue` can grow indefinitely, consuming all available memory and leading to an `OutOfMemoryError`. This is its most significant pitfall.
+- **Deadlocks (for dependent tasks)**: If tasks within the pool submit new tasks to the same pool and then wait for those new tasks to complete (`future.get()`), and the pool is full, it can lead to a deadlock. All threads might be blocked waiting for tasks that are themselves queued and cannot be executed because there are no available threads.
+- **Poor I/O-bound performance**: For I/O-bound tasks (which spend most time waiting for external resources), a fixed pool size equal to CPU cores will likely underutilize system resources, as threads spend most time blocked.
+
+### Best Practices for `FixedThreadPool`
+- Use for CPU-bound tasks: Ideal when you want to cap the number of concurrent computations to match CPU capacity.
+- Monitor queue size: If you use FixedThreadPool in a production system, monitor the LinkedBlockingQueue's size. If it's constantly growing, it indicates a bottleneck or an issue with task submission rate.
+- Consider a bounded queue for robustness: For production systems, it's generally safer to manually create a ThreadPoolExecutor with a FixedThreadPool configuration but use a bounded queue (e.g., ArrayBlockingQueue) and a RejectedExecutionHandler to apply backpressure or handle overloads gracefully
