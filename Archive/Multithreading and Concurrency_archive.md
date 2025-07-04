@@ -26,8 +26,8 @@
 - When the compiler comes to main
   - A new process is created
   - A new instance of JVM is created
-- <img src = "images/process-and-thread.png" width="30%"> 
-- <img src = "images/process-and-thread-2.png" width="30%">
+- <img src = "../images/process-and-thread.png" width="30%"> 
+- <img src = "../images/process-and-thread-2.png" width="30%">
 - Code Segment, Data Segment and Heap Memory is shared with all thread.
 - Register, Stack and Counter is local to each thread.
 
@@ -156,7 +156,7 @@ Code Executed by Thread: Thread-0
 - A class can extend only 1 class
 
 ## Thread Lifecycle
-<img src ="images/thread-lifecycle.png" width="30%">
+<img src ="../images/thread-lifecycle.png" width="30%">
 
 | Lifecycle State | Description                                                                                                                                                                                                                                                                        |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

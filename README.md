@@ -1,55 +1,22 @@
-# Roamap
-## OOPs Fundamentals
-- Classes
-- Object
-- Constructor
-- 4 Pillars
-    - Inheritance
-    - Polymorphism
-    - Abstraction
-    - Encapsulation
+# Java
 
-## Basic Overview of Java
-- Procedural vs OOPs
-- What is Java and what makes it plarform independent?
-- JDK vs JRE vs JVM
-- Installation
-- Setting Class Path Env Variables
-- Writing First Java Program
-
-## Deep Dive
-- Understanding Classes, Different Types and Objects
-    - Abstract Classes
-    - Inner Classes
-- Understanding Variables
-    - Static Variables
-    - Final Variables
-    - Primitive Variables
-    - Object References
-    - Big Decimal vs Double
-    - Understanding about String 
-        - String Pool
-        - String Immutability
-    - Access Specifiers
-    - Type Casting
-        - Implicit Type Casting
-        - Explicit Type Casting
-    - Understanding Method and Different Types
-        - Return Types
-        - Static Method
-        - Method Parameters
-        - Pass by value vs Pass by reference
-        - Overloading
-    - How does Memory Management happens in Java?
-        - Understand about heap and stack memory
-    - Garbage Collector
-    - Understand Constructor
-        - Private Constructor
-        - Default Constructor
-        - Parameterized Constructor
-        - Constructor vs Method
-    - Files and Directories in Java
-        - Read and Write from File using Scanners
-    - Understand Package and Import
-    - Understand POJOs
-
+### [01 - Introduction]()
+### [02 - Object-Oriented Programming (OOP)]()
+### [03 - Methods]()
+### [04 - Classes]()
+### [05 - Interfaces]()
+### [06 - Constructors]()
+### [07 - JVM Internals]()
+### [08 - Reflection]()
+### [09 - Annotations]()
+### [10 - Exception Handling]()
+### [11 - Collections Framework]()
+### [12 - String]()
+### [13 - Enum]()
+### [14 - APIs]()
+### [15 - Multithreading and Concurrency]()
+### [16 - File Handling]()
+### [17 - JDBC & Database Connectivity]()
+### [18 - Serialization & Deserialization]()
+### [19 - NIO]()
+### [20 - Miscellaneous]()
