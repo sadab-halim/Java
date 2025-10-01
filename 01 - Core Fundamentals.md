@@ -416,25 +416,25 @@ public class WrapperExample {
 
 Here are 10-15 conceptual questions that you should be able to answer confidently.
 
-1. **Q: Explain the difference between the JDK, JRE, and JVM.**
+1. **Explain the difference between the JDK, JRE, and JVM.**
     >The **JVM** (Java Virtual Machine) is the abstract machine that executes bytecode. The **JRE** (Java Runtime Environment) includes the JVM plus the core libraries needed to *run* Java applications. The **JDK** (Java Development Kit) contains everything in the JRE plus the development tools (like the compiler `javac` and debugger) needed to *write* Java applications. It's a hierarchy: JDK contains JRE, which contains JVM.
-2. **Q: What does "platform independence" mean, and how does Java achieve it?**
+2. **What does "platform independence" mean, and how does Java achieve it?**
     >It means you can "write once, run anywhere." Java achieves this by using a two-step process. First, the Java compiler (`javac`) compiles human-readable `.java` source code into an intermediate, platform-agnostic format called **bytecode** (`.class` files). Then, a platform-specific JVM translates this universal bytecode into native machine instructions that the host operating system can execute.
-3. **Q: What is String immutability in Java? Why is it a feature?**
+3. **What is String immutability in Java? Why is it a feature?**
     >It means that once a `String` object is created, its contents cannot be changed. Any method that appears to modify a string actually creates and returns a new `String` object. This is a crucial feature for three reasons: **thread safety** (immutable objects can be shared between threads without risk), **security** (preventing malicious code from altering critical parameters), and **performance** (enabling the String Pool optimization).
-4. **Q: Explain the String Pool.**
+4. **Explain the String Pool.**
     >The String Pool is a special storage area in the Java heap. When you create a String using a literal (e.g., `String s = "test";`), the JVM checks the pool for an identical string. If one exists, it returns a reference to it; otherwise, it creates the string, adds it to the pool, and then returns the reference. This saves memory by ensuring that identical string literals point to the same object. Using `new String("test")`, however, explicitly forces the creation of a new object outside the pool.
-5. **Q: Is Java pass-by-value or pass-by-reference?**
+5. **Is Java pass-by-value or pass-by-reference?**
     >Java is strictly **pass-by-value**. When a primitive type is passed to a method, a copy of its value is passed. When an object is passed, a copy of its **reference value** (the memory address) is passed. This means the method parameter and the original variable both point to the *same* object in the heap, so the object's internal state can be modified, but the original reference variable cannot be changed to point to a new object.
-6. **Q: What is the difference between the Stack and the Heap?**
+6. **What is the difference between the Stack and the Heap?**
     >The **Stack** is used for static memory allocation and stores method call frames and local variables, including all primitives. It's fast, LIFO (Last-In, First-Out), and memory is managed automatically as methods are called and returned. The **Heap** is used for dynamic memory allocation for all objects and arrays created with the `new` keyword. It's a shared space, access is slightly slower, and it's managed by the Garbage Collector.
-7. **Q: What are Wrapper Classes and what problem do they solve?**
+7. **What are Wrapper Classes and what problem do they solve?**
     >Wrapper classes (like `Integer`, `Double`) "wrap" a primitive value inside an object. They solve the problem that many core Java structures, particularly the Collections Framework (`ArrayList`, `HashMap`), can only work with objects, not primitives. **Autoboxing** is the automatic conversion from primitive to wrapper, and **unboxing** is the reverse. A key pitfall is attempting to unbox a `null` wrapper reference, which results in a `NullPointerException`.
-8. **Q: What is the purpose of the `final` keyword?**
+8. **What is the purpose of the `final` keyword?**
     >The `final` keyword is used to make an entity unchangeable. For a **variable**, it makes it a constant (it can only be assigned once). For a **method**, it prevents subclasses from overriding it. For a **class**, it prevents it from being subclassed (extended).
-9. **Q: Why is the `main` method `public static void`?**
+9. **Why is the `main` method `public static void`?**
     >**`public`** so it can be accessed by the JVM to start the program. **`static`** so the JVM can call it without having to create an instance of the class first. **`void`** because it doesn't return any value to the JVM.
-10. **Q: When would you use the `==` operator versus the `.equals()` method for Strings?**
+10. **When would you use the `==` operator versus the `.equals()` method for Strings?**
     >You should almost always use `.equals()` to compare the actual character content of two strings. The `==` operator compares object references—it only returns `true` if both variables point to the exact same object in memory, which is often not what you want to check.
 
 ***
