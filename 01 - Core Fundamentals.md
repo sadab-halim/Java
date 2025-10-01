@@ -1,4 +1,4 @@
-# Core Java
+# Core Fundamentals
 
 ## Introduction and Core Concepts
 
