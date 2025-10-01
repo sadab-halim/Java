@@ -1,59 +1,9 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
+# Object Oriented Programming 
 
-# Act as an expert-level Principal Engineer and a world-class technical tutor. Your task is to create a comprehensive, structured, and in-depth curriculum to help me master Object-Oriented-Programming
+## Introduction and Core Concepts
 
-The curriculum must be built specifically from the list of subtopics I provide below. Your goal is to take my list and organize it into a logical learning path that takes me from foundational concepts to an advanced level, making me capable of confidently answering any technical interview question on these subjects.
-
-Here is the list of subtopics to cover:
-Classes and Objects
-OOP Principles: Encapsulation, Inheritance, Polymorphism, Abstraction
-Access Modifiers: public, private, protected, default
-Constructors (Overloaded, Private, Chaining)
-this and super keywords
-Method Overloading and Overriding
-Static Members (Methods, Blocks, Variables)
-Final Classes, Methods, Variables
-Inner Classes (Static, Non-static, Local, Anonymous)
-Abstract Classes and Interfaces
-Sealed Classes (Java 17)
-Object Class Methods
-Cloning and Cloneable Interface
-Covariant return types
-Composition vs Inheritance
-
-Structure your response as a step-by-step curriculum.
-First, create an introductory module to set the stage. Then, intelligently group my subtopics into Beginner, Intermediate, and Advanced modules. For each subtopic, provide detailed explanations, use simple analogies to clarify complex concepts, and include practical, well-commented code examples where applicable.
-
-Here is the required structure for the curriculum:
-Module 1: Introduction and Core Concepts (The "Why" and "What")
-(You will generate this content to provide foundational context before addressing my list.)
-What is [Your Topic Here]? Explain it in simple terms. Use an analogy.
-Why was it created? What specific problems does it solve?
-Core Architecture \& Philosophy: Explain the fundamental design principles and the high-level architecture.
-
-Module 2, 3, and 4: The Core Curriculum (Beginner, Intermediate, Advanced)
-(You will take my list of subtopics and logically organize them across these three modules.)
-Structure the Subtopics: Arrange my list of subtopics into a progressive order, from the most foundational to the most advanced. Group them into "Beginner," "Intermediate," and "Advanced" sections.
-In-Depth Explanation: For each subtopic in your organized list, provide a deep-dive explanation.
-Code Examples \& Best Practices: Include practical code examples, discuss common use cases, and highlight best practices or common patterns associated with each subtopic.
-
-Module 5: Expert - Interview Mastery
-(After covering all the subtopics, generate this module to prepare me for interviews.)
-Common Interview Questions (Theory): List the top 10-15 conceptual questions an interviewer might ask related to the subtopics we covered and provide concise, expert-level answers.
-Common Interview Questions (Practical/Coding): Provide 3-5 common coding or problem-solving tasks related to the subtopics. Show an ideal solution for each, explaining the thought process.
-System Design Scenarios: Pose 2-3 system design questions where [Your Topic Here] and the concepts we covered would be key components. Outline a high-level solution and explain the design trade-offs.
-
-Begin with Module 1 and wait for me to say "continue" before you proceed to the next module to ensure I have time to digest the information. Maintain your persona as an expert tutor throughout our interaction.
-
-Of course. It's a pleasure to guide you. Mastering Object-Oriented Programming is a cornerstone of becoming a truly effective software engineer. It's not just about learning a language's syntax; it's about learning a powerful way to think about and structure complex systems.
-
-Let's begin with the foundation.
-
-### **Module 1: Introduction and Core Concepts (The "Why" and "What" of OOP)**
-
-#### **What is Object-Oriented Programming (OOP)?**
-
-In the simplest terms, **Object-Oriented Programming** is a programming paradigm—a style or a "way" of writing code—that organizes software design around *data*, or more specifically, *objects*, rather than functions and logic.
+### What is Object-Oriented Programming (OOP)?
+**Object-Oriented Programming** is a programming paradigm—a style or a "way" of writing code—that organizes software design around *data*, or more specifically, *objects*, rather than functions and logic.
 
 An "object" is a self-contained entity that bundles together two things:
 
@@ -61,15 +11,13 @@ An "object" is a self-contained entity that bundles together two things:
 2. **Methods:** The actions or behaviors that the object can perform (e.g., `accelerate()`, `brake()`, `changeGear()`).
 
 **Analogy: Building with LEGOs**
-
-Think about building a complex model with LEGOs.
-
-* **Procedural Programming (the older way):** Imagine getting a giant box of loose LEGO bricks and a long list of instructions: "Take a red 2x4 brick, place it at coordinate X,Y. Take a blue 1x2 brick, place it..." You are focused on the *procedure* and have to manage every single piece individually. If you make a mistake, it's hard to find, and building a second, slightly different model is nearly impossible without starting over.
-* **Object-Oriented Programming (the OOP way):** Now, imagine that instead of loose bricks, you have pre-built LEGO components. You have a set of `Wheels` (which already know how to spin), a `Chassis` (which knows how to hold the axles), and an `Engine` block. Each component is an **object**. It manages its own internal bricks (**data**) and has a clear purpose and function (**methods**). To build a car, you don't connect individual bricks; you connect these high-level components. You can easily reuse the `Wheels` component for a truck, a bus, or even a plane's landing gear.
+>Think about building a complex model with LEGOs.
+>* **Procedural Programming (the older way):** Imagine getting a giant box of loose LEGO bricks and a long list of instructions: "Take a red 2x4 brick, place it at coordinate X,Y. Take a blue 1x2 brick, place it..." You are focused on the *procedure* and have to manage every single piece individually. If you make a mistake, it's hard to find, and building a second, slightly different model is nearly impossible without starting over.
+>* **Object-Oriented Programming (the OOP way):** Now, imagine that instead of loose bricks, you have pre-built LEGO components. You have a set of `Wheels` (which already know how to spin), a `Chassis` (which knows how to hold the axles), and an `Engine` block. Each component is an **object**. It manages its own internal bricks (**data**) and has a clear purpose and function (**methods**). To build a car, you don't connect individual bricks; you connect these high-level components. You can easily reuse the `Wheels` component for a truck, a bus, or even a plane's landing gear.
 
 OOP allows you to build software out of these reusable, self-contained "components" (objects), making your code more organized, modular, and scalable.
 
-#### **Why was OOP Created? What Problems Does it Solve?**
+### Why was OOP Created? What Problems Does it Solve?
 
 As software programs grew larger and more complex in the 1960s and 70s, the procedural style of programming started to show its limitations. This led to what was often called the "software crisis."
 
@@ -79,36 +27,22 @@ OOP was created to solve these specific problems:
 2. **Difficulty with Reusability:** Writing a program to manage `Students` and then another to manage `Teachers` would involve writing a lot of duplicate code (e.g., both have names, IDs, addresses). OOP solves this with **inheritance**, allowing you to create a base `Person` object and have `Student` and `Teacher` objects inherit common attributes and behaviors, promoting code reuse.
 3. **Poor Real-World Mapping:** Procedural code, with its lists of instructions, doesn't naturally map to real-world problems. The world is full of *things* (objects) that have properties and interact with each other. OOP allows you to model complex systems (like a bank, a traffic simulation, or an e-commerce platform) in a way that is more intuitive and closer to the real-world domain.
 
-#### **Core Architecture \& Philosophy**
-
-The philosophy of OOP rests on a few key architectural principles that you'll see reflected in every subtopic we cover. The goal is to create systems that are:
+### Core Architecture & Philosophy
 
 * **Modular:** Your system is built from independent objects. You can work on the `Engine` object without breaking the `Wheel` object.
 * **Maintainable:** When a bug appears in how a car brakes, you know to look inside the `Car` object's `brake()` method, not in some random global function. This makes debugging and updating code much simpler.
 * **Extensible:** You can easily add new features. If you want to create an `ElectricCar`, you can have it **inherit** from the `Car` object and just add a `chargeBattery()` method, without rewriting the entire `Car` class from scratch.
 * **Abstracted:** You don't need to know *how* the engine works internally to be able to drive the car. You just need to know that the `accelerate()` method makes it go faster. OOP hides complexity, exposing only what is necessary.
 
-This foundation—organizing code into objects that model real-world concepts to increase modularity and reduce complexity—is the "why" behind everything else we are about to learn.
+## The Core Curriculum
 
-When you're ready, say **"continue,"** and we'll move on to Module 2, where we'll start organizing your list of subtopics and dive into the beginner concepts.
+### 1. Classes and Objects
 
----
-
-# continue
-
-Excellent. You have a solid grasp of the "why." Now, let's start building your mastery with the "how." We'll begin with the absolute fundamentals—the essential building blocks you'll use in every single piece of object-oriented code you write.
-
-### **Module 2: The Core Curriculum (Beginner)**
-
-This module covers the non-negotiable basics. Master these, and you'll have a strong foundation for everything that follows.
-
-#### **1. Classes and Objects**
-
-* **In-Depth Explanation:** This is the central concept of OOP.
+* This is the central concept of OOP.
     * A **Class** is a blueprint, a template, or a recipe for creating objects. It defines a set of attributes (variables) and methods (functions) that the objects created from it will have. A class doesn't exist as a concrete entity in your program's memory; it's just a definition.
     * An **Object** is an *instance* of a class. It's the real, tangible thing created from the blueprint that you can actually work with in your code. You can create many objects from a single class, each with its own unique state (the values of its attributes).
 * **Analogy:** The **Class** is the architectural blueprint for a house. It details the number of rooms, the placement of doors, and the type of roof. The **Object** is the actual, physical house you build from that blueprint. You can use the same blueprint to build many identical houses, but each house is a separate object that can be painted a different color or have different people living inside.
-* **Code Example \& Best Practices:**
+* **Code Example & Best Practices:**
 
 ```java
 // Best Practice: Class names should be in PascalCase (e.g., MyFirstClass).
@@ -159,12 +93,9 @@ public class Kennel {
 }
 ```
 
+### 2. Constructors
 
-***
-
-#### **2. Constructors**
-
-* **In-Depth Explanation:** A constructor is a special method that is automatically called when you create a new object (`new Dog()`). Its primary job is to initialize the object's state (its attributes). If you don't define a constructor, the compiler provides a default, no-argument constructor for you that initializes attributes to their default values (0 for numbers, `null` for objects, etc.).
+* A constructor is a special method that is automatically called when you create a new object (`new Dog()`). Its primary job is to initialize the object's state (its attributes). If you don't define a constructor, the compiler provides a default, no-argument constructor for you that initializes attributes to their default values (0 for numbers, `null` for objects, etc.).
     * **Overloaded Constructors:** You can have multiple constructors in the same class, as long as they have different parameter lists (different number or types of arguments). This provides flexible ways to create objects.
     * **Private Constructors:** A constructor declared as `private` prevents the class from being instantiated from outside the class itself. This is a key technique for creating **Singleton** classes (where only one instance can ever exist) or utility classes full of static methods.
     * **Constructor Chaining:** A constructor can call another constructor in the same class using the `this()` keyword. This is useful for reducing code duplication.
@@ -172,7 +103,7 @@ public class Kennel {
     * A **default constructor** is the base model: black paint, standard engine.
     * An **overloaded constructor** is a custom order: "I want a car with red paint and a turbo engine." You provide the specifications (`"red"`, `"turbo"`) as arguments.
     * **Constructor chaining** is an efficiency step. The "custom sport package" setup might first run the "standard setup" and then just add the spoiler and racing stripes on top.
-* **Code Example \& Best Practices:**
+* **Code Example & Best Practices:**
 
 ```java
 public class Car {
@@ -219,12 +150,9 @@ public class Dealership {
 }
 ```
 
+### 3. The `this` keyword
 
-***
-
-#### **3. The `this` keyword**
-
-* **In-Depth Explanation:** The `this` keyword is a reference variable that refers to the **current object**—the object whose method or constructor is being called.
+* The `this` keyword is a reference variable that refers to the **current object**—the object whose method or constructor is being called.
 * **Key Uses:**
 
 1. **Disambiguation:** To distinguish between instance variables and parameters that have the same name (as seen in the `Car` constructor: `this.model = model;`). This is its most common use.
@@ -232,9 +160,7 @@ public class Dealership {
 3. **Passing the Current Object:** To pass the current object as an argument to another method.
 * **Analogy:** It's like pointing to yourself and saying "me." If you're in a room with other people and a method `giveHat(Person p)` is called, inside that method, `this` refers to the specific person object who is *giving the hat*.
 
-***
-
-#### **4. Access Modifiers \& Encapsulation**
+### 4. Access Modifiers & Encapsulation
 
 * **In-Depth Explanation:**
     * **Encapsulation** is one of the four core pillars of OOP. It means bundling the data (attributes) and the methods that operate on that data into a single unit (the class). A key part of encapsulation is **data hiding**—restricting direct access to an object's internal state.
@@ -307,27 +233,11 @@ public class BankClient {
 
 By making `balance` private, we prevent careless mistakes like `myAccount.balance = -500;`. All interactions must go through the `deposit` and `withdraw` methods, which contain essential validation logic. This is the power of encapsulation.
 
-***
+## The Core Curriculum
 
-This concludes the beginner module. We've covered how to define blueprints (`class`) and create objects from them, how to initialize those objects correctly (`constructor`), how to refer to the object itself (`this`), and how to protect its data (`private` / encapsulation).
+### 1. Inheritance & The `super` keyword
 
-Internalize these concepts fully. When you're ready to build upon this foundation, say **"continue"**.
-
----
-
-# continue
-
-Excellent. With the fundamentals in place, we can now explore how objects relate to one another and how we can create more flexible and powerful systems. This module introduces the core principles that truly define the object-oriented paradigm.
-
-### **Module 3: The Core Curriculum (Intermediate)**
-
-This module moves from defining single, isolated classes to building relationships between them. We'll cover inheritance, polymorphism, and abstraction—three of the four main pillars of OOP.
-
-***
-
-#### **1. Inheritance \& The `super` keyword**
-
-* **In-Depth Explanation:** **Inheritance** is a mechanism where a new class (the **subclass** or **child class**) derives attributes and methods from an existing class (the **superclass** or **parent class**). It creates an **"is-a"** relationship. For example, a `Car` is a type of `Vehicle`. A `Dog` is a type of `Animal`.
+* **Inheritance** is a mechanism where a new class (the **subclass** or **child class**) derives attributes and methods from an existing class (the **superclass** or **parent class**). It creates an **"is-a"** relationship. For example, a `Car` is a type of `Vehicle`. A `Dog` is a type of `Animal`.
 
 The primary benefit is **code reuse**. You write the common code once in the parent class, and all child classes automatically get that functionality.
 
@@ -388,10 +298,7 @@ public class Main {
 }
 ```
 
-
-***
-
-#### **2. Method Overriding vs. Method Overloading (Polymorphism)**
+### 2. Method Overriding vs. Method Overloading (Polymorphism)
 
 * **In-Depth Explanation:** This is where the concept of **Polymorphism** (the third pillar of OOP, meaning "many forms") comes to life. It allows an object to take on many forms. The most common use of polymorphism in Java is through method overriding.
     * **Method Overriding:** A subclass provides a *specific implementation* for a method that is already defined in its parent class. The method signature (name and parameters) must be exactly the same. This is also called **runtime polymorphism**.
@@ -446,10 +353,7 @@ public class Main {
 }
 ```
 
-
-***
-
-#### **3. Static Members (Variables, Methods, Blocks)**
+### 3. Static Members (Variables, Methods, Blocks)
 
 * **In-Depth Explanation:** `static` members belong to the **class itself**, not to any individual object instance.
     * **`static` variable:** A single copy of the variable is shared among all instances of the class. If one object changes it, the change is visible to all other objects.
@@ -503,10 +407,7 @@ public class Main {
 }
 ```
 
-
-***
-
-#### **4. The `final` Keyword (Variables, Methods, Classes)**
+### 4. The `final` Keyword (Variables, Methods, Classes)
 
 * **In-Depth Explanation:** The `final` keyword is used to apply restrictions on classes, methods, and variables.
     * `final` **variable:** Creates a constant. Its value cannot be changed after it has been assigned.
@@ -542,23 +443,9 @@ public final class ImmutableData {
 ```
 
 
-This module covered a lot of ground. We've seen how classes can be related (`inheritance`), how they can exhibit different behaviors for the same action (`polymorphism`/`overriding`), how we can enforce constraints (`final`), and how to manage state and behavior that belongs to a class as a whole (`static`).
+## The Core Curriculum (Advanced)
 
-Take your time to absorb this. When you're ready to tackle advanced concepts like abstraction and composition, say **"continue"**.
-
----
-
-# continue
-
-You're ready for the deep end. This module covers the concepts that separate a competent programmer from an expert engineer. We'll explore abstraction, advanced class relationships, and crucial design principles that enable you to build truly robust, flexible, and maintainable software.
-
-### **Module 4: The Core Curriculum (Advanced)**
-
-
-***
-
-#### **1. Abstraction: Abstract Classes and Interfaces**
-
+### 1. Abstraction: Abstract Classes and Interface
 * **In-Depth Explanation:** **Abstraction** is the fourth pillar of OOP. Its goal is to **hide complexity** by exposing only the essential, high-level features of an object. It's the "what" an object does, not the "how." In Java, we achieve abstraction primarily through `abstract` classes and `interfaces`.
     * **`abstract` class:** A restricted class that cannot be used to create objects (it cannot be instantiated). It acts as a blueprint for other classes. It can have `abstract` methods (methods without a body) and regular, concrete methods. It's used for an **"is-a"** relationship where you want to provide some common, shared implementation.
     * **`interface`:** A completely abstract blueprint that defines a *contract* of what a class *can do*. It can only contain `abstract` methods (by default), `static` methods, `default` methods, and `static final` constants. A class `implements` an interface to adhere to this contract. It's used for a **"can-do"** relationship (e.g., a `Bird` and a `Plane` are different things, but both `can-do` the action of flying, so they might both implement a `Flyable` interface).
@@ -614,10 +501,7 @@ class FactoryRobot extends Machine {
 }
 ```
 
-
-***
-
-#### **2. Composition vs. Inheritance ("has-a" vs. "is-a")**
+### 2. Composition vs. Inheritance ("has-a" vs. "is-a")
 
 * **In-Depth Explanation:** This is a crucial system design choice.
     * **Inheritance (`is-a`)** creates a tight coupling between a parent and child. A `Sedan` *is a* `Car`. This is powerful but can be rigid. If the parent class (`Car`) changes, it can unexpectedly break all its children (the "fragile base class" problem).
@@ -668,10 +552,7 @@ public class Main {
 }
 ```
 
-
-***
-
-#### **3. Inner Classes**
+### 3. Inner Classes
 
 * **In-Depth Explanation:** An inner class is a class defined within the body of another class. They are used to logically group classes that are only used in one place and to enhance encapsulation.
     * **Non-Static Inner Class:** Tied to an instance of the outer class. Can access all members (even private) of the outer object.
@@ -701,10 +582,7 @@ public class Main {
 }
 ```
 
-
-***
-
-#### **4. Sealed Classes (Java 17+)**
+### 4. Sealed Classes (Java 17+)
 
 * **In-Depth Explanation:** A modern feature that gives you fine-grained control over your inheritance hierarchy. A `sealed` class or interface explicitly declares which *specific* classes are allowed to extend or implement it. This closes the hierarchy to unknown implementations.
 * **Use Case:** Perfect for modeling a fixed set of outcomes. Imagine a function that can return `Success`, `Failure`, or `Pending`. By sealing the result type, you can force developers (and the compiler) to handle all possible cases.
@@ -725,10 +603,7 @@ public final class Loading implements NetworkResult { /* ... */ }
 // public class Canceled implements NetworkResult {} // ERROR! Not in the 'permits' list.
 ```
 
-
-***
-
-#### **5. Object Class Methods \& Covariant Return Types**
+### 5. Object Class Methods & Covariant Return Types
 
 * **In-Depth Explanation:** Every class in Java implicitly extends `java.lang.Object`. Therefore, every object inherits methods like `toString()`, `equals()`, `hashCode()`, and `clone()`.
     * **`equals(Object obj)`:** Checks for logical equality. You must override it to compare the state of two objects (e.g., two `Person` objects are equal if they have the same ID number).
@@ -769,58 +644,41 @@ public class Point implements Cloneable {
 }
 ```
 
+## Expert - Interview Mastery
 
-We have now covered your entire list of subtopics, from the absolute basics to the most advanced and modern features of OOP. You have the complete map.
-
-Review this module carefully. Once you feel comfortable with these advanced concepts, say **"continue"**, and we will proceed to the final module: putting this knowledge to the test in an interview context.
-
----
-
-# continue
-
-Excellent. You've built the skyscraper of knowledge, from the foundation to the spire. Now, let's learn how to present it. The final step in mastery is being able to articulate your knowledge under pressure and apply it to solve real-world problems. Welcome to the interview room.
-
-### **Module 5: Expert - Interview Mastery**
-
-This module is designed to help you confidently navigate technical interviews by applying the OOP concepts we've covered.
-
-***
-
-#### **Common Interview Questions (Theory)**
+### **Common Interview Questions (Theory)
 
 Here are conceptual questions an interviewer might ask, along with concise, expert-level answers.
 
 1. **What are the four core principles of OOP?**
-    * **Encapsulation:** Bundling data (attributes) and methods that operate on the data into a single unit (class) and hiding the internal state from the outside world. This is enforced using access modifiers.
-    * **Abstraction:** Hiding complex implementation details and exposing only the necessary functionalities. This is achieved through abstract classes and interfaces.
-    * **Inheritance:** A mechanism where a child class acquires the properties and behaviors of a parent class, promoting code reuse through an "is-a" relationship.
-    * **Polymorphism:** The ability of an object to take on many forms. The most common use is when a parent class reference is used to refer to a child class object, allowing a single action to be performed in different ways (e.g., method overriding).
+    >* **Encapsulation:** Bundling data (attributes) and methods that operate on the data into a single unit (class) and hiding the internal state from the outside world. This is enforced using access modifiers.
+    >* **Abstraction:** Hiding complex implementation details and exposing only the necessary functionalities. This is achieved through abstract classes and interfaces.
+    >* **Inheritance:** A mechanism where a child class acquires the properties and behaviors of a parent class, promoting code reuse through an "is-a" relationship.
+    >* **Polymorphism:** The ability of an object to take on many forms. The most common use is when a parent class reference is used to refer to a child class object, allowing a single action to be performed in different ways (e.g., method overriding).
 2. **What is the difference between an abstract class and an interface?**
-    * **Focus:** An abstract class defines an "is-a" relationship and can provide some base implementation (shared code). An interface defines a "can-do" relationship, specifying a contract of capabilities without any implementation concern.
-    * **Inheritance:** A class can extend only **one** abstract class but can implement **multiple** interfaces.
-    * **Members:** Abstract classes can have constructors, instance variables, and methods with implementation. Interfaces can only have `static final` variables and abstract, static, or default methods.
+    >* **Focus:** An abstract class defines an "is-a" relationship and can provide some base implementation (shared code). An interface defines a "can-do" relationship, specifying a contract of capabilities without any implementation concern.
+    >* **Inheritance:** A class can extend only **one** abstract class but can implement **multiple** interfaces.
+    >* **Members:** Abstract classes can have constructors, instance variables, and methods with implementation. Interfaces can only have `static final` variables and abstract, static, or default methods.
 3. **When would you choose an abstract class over an interface?**
-    * You should choose an abstract class when you want to provide common, shared functionality or state that all subclasses will inherit. If you are creating a tight, hierarchical relationship where objects are closely related (e.g., `Dog`, `Cat` extending `Animal`), an abstract class is a good fit.
+    >* You should choose an abstract class when you want to provide common, shared functionality or state that all subclasses will inherit. If you are creating a tight, hierarchical relationship where objects are closely related (e.g., `Dog`, `Cat` extending `Animal`), an abstract class is a good fit.
 4. **Explain the "Composition over Inheritance" principle.**
-    * This is a design principle that advises structuring classes based on what they *have* (a "has-a" relationship, using composition) rather than what they *are* (an "is-a" relationship, using inheritance). Composition is generally more flexible, avoids the rigid coupling of inheritance (the "fragile base class" problem), and makes code easier to test and maintain. Use inheritance only when a subtype truly *is a* form of the supertype.
+    >* This is a design principle that advises structuring classes based on what they *have* (a "has-a" relationship, using composition) rather than what they *are* (an "is-a" relationship, using inheritance). Composition is generally more flexible, avoids the rigid coupling of inheritance (the "fragile base class" problem), and makes code easier to test and maintain. Use inheritance only when a subtype truly *is a* form of the supertype.
 5. **What is the contract between `equals()` and `hashCode()`?**
-    * The contract is: if two objects are considered equal according to the `equals()` method, then they **must** have the same `hashCode()` value. The reverse is not required: two objects with the same hash code are not necessarily equal. Violating this contract will break the functionality of hash-based collections like `HashMap` and `HashSet`.
+    >* The contract is: if two objects are considered equal according to the `equals()` method, then they **must** have the same `hashCode()` value. The reverse is not required: two objects with the same hash code are not necessarily equal. Violating this contract will break the functionality of hash-based collections like `HashMap` and `HashSet`.
 6. **Can a constructor be `private`? If so, why?**
-    * Yes. A private constructor prevents a class from being instantiated from outside the class itself. This is used in several design patterns, most famously the **Singleton Pattern**, where the goal is to ensure only one instance of a class ever exists. It's also used in utility classes that only contain static methods or in factory method patterns.
+    >* Yes. A private constructor prevents a class from being instantiated from outside the class itself. This is used in several design patterns, most famously the **Singleton Pattern**, where the goal is to ensure only one instance of a class ever exists. It's also used in utility classes that only contain static methods or in factory method patterns.
 7. **What is the difference between method overloading and overriding?**
-    * **Overloading** is having multiple methods with the same name but different parameters within the same class (compile-time polymorphism). **Overriding** is a subclass providing a specific implementation for a method that is already defined in its parent class (runtime polymorphism).
+    >* **Overloading** is having multiple methods with the same name but different parameters within the same class (compile-time polymorphism). **Overriding** is a subclass providing a specific implementation for a method that is already defined in its parent class (runtime polymorphism).
 8. **What does the `final` keyword signify for a variable, method, and class?**
-    * `final` **variable:** A constant whose value cannot be changed once assigned.
-    * `final` **method:** Cannot be overridden by a subclass.
-    * `final` **class:** Cannot be extended or inherited from.
+    >* `final` **variable:** A constant whose value cannot be changed once assigned.
+    >* `final` **method:** Cannot be overridden by a subclass.
+    >* `final` **class:** Cannot be extended or inherited from.
 9. **What problem do Sealed Classes solve?**
-    * Sealed classes solve the problem of uncontrolled inheritance. They allow a superclass to explicitly declare which specific classes are permitted to extend it, creating a closed and known hierarchy. This is extremely useful for things like pattern matching in `switch` expressions, ensuring all possible subtypes are handled without needing a `default` case.
+    >* Sealed classes solve the problem of uncontrolled inheritance. They allow a superclass to explicitly declare which specific classes are permitted to extend it, creating a closed and known hierarchy. This is extremely useful for things like pattern matching in `switch` expressions, ensuring all possible subtypes are handled without needing a `default` case.
 10. **Explain the difference between a shallow copy and a deep copy.**
-    * A **shallow copy** (which `Object.clone()` performs by default) copies the object's top-level fields. If a field is a reference to another object, only the reference is copied, not the object it points to. Both the original and the copy will point to the same underlying object. A **deep copy** creates a new, separate copy of the entire object graph, recursively copying any objects referenced by the original. The original and the copy are completely independent.
+    >* A **shallow copy** (which `Object.clone()` performs by default) copies the object's top-level fields. If a field is a reference to another object, only the reference is copied, not the object it points to. Both the original and the copy will point to the same underlying object. A **deep copy** creates a new, separate copy of the entire object graph, recursively copying any objects referenced by the original. The original and the copy are completely independent.
 
-***
-
-#### **Common Interview Questions (Practical/Coding)**
+### Common Interview Questions (Practical/Coding)
 
 1. **Problem: Design a Deck of Cards.**
     * **Thought Process:** A deck of cards is a classic OOP modeling problem.
@@ -915,10 +773,7 @@ public class VendingMachine {
 }
 ```
 
-
-***
-
-#### **System Design Scenarios**
+### System Design Scenarios
 
 1. **Scenario: Design a Parking Lot System.**
     * **High-Level Solution:**
