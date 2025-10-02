@@ -480,24 +480,14 @@ public class Main {
 ```
 
 
-We've covered a lot of ground, from data processing to new ways of structuring code. Let these concepts sink in. When you're ready to tackle the truly cutting-edge features of Java, say **"continue"** to proceed to the Advanced module.
+## Architecture, Concurrency \& Modern Patterns
 
----
-
-# continue
-
-Excellent. Let's step into the realm of the expert.
-
-These advanced features represent the cutting edge of the Java platform. They address complex, large-scale problems in application architecture, concurrency, and sophisticated data modeling. Mastering them will set you apart as a developer who understands not just the language, but the underlying platform and its future direction.
-
-### **Module 4: The Advanced Path – Architecture, Concurrency \& Modern Patterns**
-
-#### **1. Pattern Matching: Intelligent Type Inspection**
+### 1. Pattern Matching: Intelligent Type Inspection
 
 This is a suite of features evolving from Java 16 to 21+ that make working with different shapes of data safer and more expressive.
 
 * **a. Pattern Matching for `instanceof` (Java 16)**
-    * **In-Depth Explanation:** This feature streamlines the common pattern of checking an object's type, casting it, and then using it. With pattern matching, you can perform the type test and declare a new, typed variable in a single step. This variable is only in scope if the `instanceof` check is successful.
+    * This feature streamlines the common pattern of checking an object's type, casting it, and then using it. With pattern matching, you can perform the type test and declare a new, typed variable in a single step. This variable is only in scope if the `instanceof` check is successful.
     * **Analogy:** It's like checking someone's ID.
         * **Old Way:** "Is this an ID card? Yes. Okay, now let me formally treat it as an ID card. Now, I will read the name from this ID card."
         * **New Way:** "If this is an `IDCard` called `card`, then I can immediately read `card.getName()`." The declaration (`card`) and the check happen simultaneously.
@@ -522,7 +512,7 @@ public void process(Object obj) {
 ```
 
 * **b. Pattern Matching for `switch` (Java 21)**
-    * **In-Depth Explanation:** This extends the power of `switch` (which we saw in Module 3) beyond simple constants (like enums or strings) to complex *patterns*. You can now `switch` on an object and have different `case` labels that match based on the object's type. When a type is matched, it automatically binds the object to a variable of that type, just like `instanceof` pattern matching.
+    * This extends the power of `switch` (which we saw in Module 3) beyond simple constants (like enums or strings) to complex *patterns*. You can now `switch` on an object and have different `case` labels that match based on the object's type. When a type is matched, it automatically binds the object to a variable of that type, just like `instanceof` pattern matching.
     * **Code Example:**
 
 ```java
@@ -546,7 +536,7 @@ public String getObjectDescription(Object obj) {
 ```
 
 * **c. Switch with Pattern Guards (Java 21)**
-    * **In-Depth Explanation:** A pattern guard is an additional boolean condition added to a `case` label. The `case` will only match if both the type pattern matches *and* the boolean guard evaluates to `true`. This allows for much more refined and expressive control flow within a `switch`.
+    * A pattern guard is an additional boolean condition added to a `case` label. The `case` will only match if both the type pattern matches *and* the boolean guard evaluates to `true`. This allows for much more refined and expressive control flow within a `switch`.
     * **Analogy:** You're sorting mail. A guard is a second question. "Is this a `Parcel`? **AND** is it `isFragile()`? If yes, put it in the special handling bin. If it's just a `Parcel` but not fragile, put it in the regular bin."
     * **Code Example:**
 
@@ -571,9 +561,9 @@ class Triangle { boolean isEquilateral() { return false; /* logic */ } }
 ```
 
 
-#### **2. Java Modules (Java 9 – Project Jigsaw)**
+### 2. Java Modules (Java 9 – Project Jigsaw)
 
-* **In-Depth Explanation:** The Java Platform Module System is a fundamental change to how Java applications are structured and packaged. It addresses the infamous "classpath hell" by introducing strong encapsulation at the JAR level. A module is a JAR file with an added `module-info.java` file that explicitly declares:
+* The Java Platform Module System is a fundamental change to how Java applications are structured and packaged. It addresses the infamous "classpath hell" by introducing strong encapsulation at the JAR level. A module is a JAR file with an added `module-info.java` file that explicitly declares:
     * `requires`: Which other modules this module depends on.
     * `exports`: Which of its own packages it makes available to other modules.
 By default, everything is private to the module. This prevents accidental dependencies on internal implementation details and makes applications more secure and reliable.
@@ -614,9 +604,9 @@ import com.app.database.api.UserService; // This import is ALLOWED.
 ```
 
 
-#### **3. Virtual Threads (Java 21 – Project Loom)**
+### 3. Virtual Threads (Java 21 – Project Loom)
 
-* **In-Depth Explanation:** Virtual threads are a lightweight implementation of threads provided by the JDK, designed to dramatically increase the throughput of concurrent applications. While traditional threads (now called *platform threads*) are a thin wrapper around heavy OS threads, millions of virtual threads can run on a small number of platform threads. They are ideal for "thread-per-request" style applications where tasks spend most of their time waiting (e.g., for a network call or a database query).
+* Virtual threads are a lightweight implementation of threads provided by the JDK, designed to dramatically increase the throughput of concurrent applications. While traditional threads (now called *platform threads*) are a thin wrapper around heavy OS threads, millions of virtual threads can run on a small number of platform threads. They are ideal for "thread-per-request" style applications where tasks spend most of their time waiting (e.g., for a network call or a database query).
 * **Analogy:** Imagine running a restaurant.
     * **Platform Threads:** You have a fixed number of waiters (e.g., 8). Each waiter takes an order, walks to the kitchen, and *waits* there until the food is ready before taking it to the table. If all 8 waiters are stuck waiting in the kitchen, no new customers can be served.
     * **Virtual Threads:** You have one hyper-efficient manager (the JVM's ForkJoinPool) and an army of "virtual" waiters. A virtual waiter takes an order, hands it to the manager, and immediately goes back to serve another table. The manager handles the actual waiting. When the food is ready, the manager finds any available virtual waiter to deliver it. This allows you to serve thousands of tables concurrently, even with a small kitchen staff.
@@ -652,9 +642,9 @@ public class Main {
 ```
 
 
-#### **4. Structured Concurrency (Java 21, Preview)**
+### 4. Structured Concurrency (Java 21, Preview)
 
-* **In-Depth Explanation:** Structured concurrency is a programming model that treats multiple tasks running in different threads as a single unit of work. If a task splits into several concurrent sub-tasks, they must all complete before the main task can proceed. This model simplifies error handling and cancellation. If one sub-task fails, the entire unit of work can be cancelled reliably. It brings the clarity and robustness of single-threaded code (like a `try-catch` block) to the world of multi-threaded programming.
+* Structured concurrency is a programming model that treats multiple tasks running in different threads as a single unit of work. If a task splits into several concurrent sub-tasks, they must all complete before the main task can proceed. This model simplifies error handling and cancellation. If one sub-task fails, the entire unit of work can be cancelled reliably. It brings the clarity and robustness of single-threaded code (like a `try-catch` block) to the world of multi-threaded programming.
 * **Analogy:** A head chef cooking a complex dish.
     * **Unstructured Concurrency (e.g., `CompletableFuture`):** The chef tells three line cooks to start making the sauce, the pasta, and the salad independently. If the sauce cook burns the sauce, the chef might not find out until the pasta and salad are already done. The work is wasted, and the overall task is now hard to recover from.
     * **Structured Concurrency:** The chef says, "Team, we are now making the 'Main Course'." The sauce, pasta, and salad cooks work in parallel. If the sauce cook fails, he immediately notifies the chef. The chef instantly yells, "STOP!" to the pasta and salad cooks, cancels the entire "Main Course" operation, and begins cleanup. The error is handled as a single unit.
@@ -688,44 +678,34 @@ public class Main {
 ```
 
 
-You have now journeyed from the foundational concepts to the most advanced features shaping the future of Java. Take a moment to appreciate the scope of this evolution.
+## Interview Mastery
 
-When you're ready, say **"continue"** for our final module, where we'll focus on cementing this knowledge and preparing you for any technical interview.
-
----
-
-# continue
-
-Of course. Let's consolidate your knowledge and prepare you to demonstrate your expertise under pressure. This final module is designed to transform your understanding into confident, articulate answers for technical interviews.
-
-### **Module 5: Expert - Interview Mastery**
-
-#### **Common Interview Questions (Theory)**
+### Common Interview Questions (Theory)
 
 Here are 12 conceptual questions that cover the breadth of our curriculum. Answering these demonstrates a deep understanding of the "why" behind the features.
 
-1. **Q: What was the primary motivation for adding `default` methods to interfaces? How did this solve a major problem with API evolution?**
-    * **A:** The primary motivation was to allow **API evolution without breaking existing implementations**. Before Java 8, adding a new method to an interface (like `java.util.List`) would have broken every class in the world that implemented it. `default` methods provide a backward-compatible way to add new functionality to interfaces by providing a default implementation that existing classes can inherit automatically. This was crucial for adding methods like `forEach` and `stream` to the Collections API.
-2. **Q: Explain the relationship between a Functional Interface, a Lambda Expression, and a Method Reference.**
-    * **A:** They are three parts of the same mechanism. A **Functional Interface** is the *target type*—it defines the contract with its single abstract method. A **Lambda Expression** is the *implementation*—it's an anonymous function that provides the code to fulfill that contract. A **Method Reference** is a *syntactic shortcut* for a lambda that does nothing but call an existing named method. You use a method reference (`System.out::println`) when you have a pre-existing method that perfectly matches the required signature, as it's more readable than the equivalent lambda (`s -> System.out.println(s)`).
-3. **Q: The Streams API is described as 'lazy'. What does this mean, and what is the role of intermediate vs. terminal operations?**
-    * **A:** Laziness means that intermediate operations (`filter`, `map`, `sorted`) do not execute when they are declared. They merely build up a recipe for the computation. The computation is only triggered when a **terminal operation** (`collect`, `forEach`, `reduce`) is invoked. This allows the stream pipeline to perform optimizations, such as combining operations (fusion) or processing just enough data to satisfy a short-circuiting operation like `findFirst`.
-4. **Q: Why are records considered a better choice than a traditional class for Data Transfer Objects (DTOs)?**
-    * **A:** Records are superior for DTOs because they are designed to be simple, **immutable data carriers**. A `record` declaration is incredibly concise, yet the compiler automatically generates the canonical constructor, `equals()`, `hashCode()`, `toString()`, and accessor methods. This eliminates boilerplate and reduces the chance of errors. Their inherent immutability makes them automatically thread-safe and predictable.
-5. **Q: How does `Optional` improve on traditional `null` checking? What is the correct way to use it?**
-    * **A:** `Optional` improves on `null` checking by making the potential absence of a value an explicit part of the method's public contract. It forces the calling code to consciously handle the "empty" case, preventing `NullPointerExceptions`. The correct way to use it is *never* to call `.get()` without first checking `.isPresent()`. Better yet, use functional methods like `.ifPresent(value -> ...)`, `.orElse(defaultValue)`, or `.orElseThrow(() -> new Exception())` to handle both cases gracefully.
-6. **Q: Explain how Virtual Threads aim to solve the scalability problem of the 'thread-per-request' model.**
-    * **A:** In the traditional 'thread-per-request' model, each request is mapped to a heavy, OS-level platform thread. Since platform threads are a scarce resource, the system can only handle a few thousand concurrent requests before being overwhelmed. **Virtual threads** break this 1:1 mapping. They are lightweight threads managed by the JVM, not the OS. Millions of virtual threads can run on a small pool of platform threads. When a virtual thread executes blocking I/O (like a database call), it "unmounts" from its platform thread, freeing it to run another virtual thread. This allows for massive scalability with a simple, imperative coding style.
-7. **Q: What is 'classpath hell,' and how does the Java Platform Module System (Project Jigsaw) address it?**
-    * **A:** 'Classpath hell' refers to a set of problems arising from the flat, linear classpath, including version conflicts, hard-to-diagnose missing dependencies, and weak encapsulation. **Project Jigsaw** solves this by introducing a module system. Each module explicitly declares its dependencies (`requires`) and the packages it makes public (`exports`). This creates a reliable configuration, enables strong encapsulation (hiding internal implementation details), and prevents conflicts by ensuring a module reads a dependency from exactly one other module.
-8. **Q: Describe how Pattern Matching for `switch` can lead to more maintainable data processing code.**
-    * **A:** Pattern Matching transforms `switch` from a simple value-checker into a sophisticated, declarative data deconstructor. You can `switch` on an object and have `case` labels that match based on type (`case String s`), and even deconstruct records (`case User(var name, var email)`). This eliminates long chains of `if-else-if (instanceof ...)` blocks, making the code flatter, more readable, and safer, as the compiler can check for exhaustiveness.
-9. **Q: What is Structured Concurrency, and how does it improve upon older models like `CompletableFuture`?**
-    * **A:** Structured Concurrency ensures that if a task splits into concurrent subtasks, they all run within a confined lexical scope. This guarantees that the parent task only completes after all its children have completed. This model simplifies error handling and cancellation. If one subtask fails, the entire scope can be cancelled immediately, preventing resource leaks and wasted work. `CompletableFuture` is unstructured; a future can outlive its creator, making cancellation and error propagation complex and manual.
-10. **Q: When should you use `var`, and when should you avoid it for code clarity?**
-    * **A:** Use `var` when the type of the variable is obvious from the right-hand side of the expression, such as in `var user = new User();` or `var users = new ArrayList<User>()`. This reduces verbosity. **Avoid `var`** when it would obscure the type, especially when the right-hand side is a factory method with a non-obvious return type (e.g., `var result = dataProcessor.process()`) or when you want to program to an interface (e.g., `List<User> users = new ArrayList<>();` is often clearer than `var users = ...`). The goal is to improve readability, not just to save keystrokes.
+1. **What was the primary motivation for adding `default` methods to interfaces? How did this solve a major problem with API evolution?**
+    >The primary motivation was to allow **API evolution without breaking existing implementations**. Before Java 8, adding a new method to an interface (like `java.util.List`) would have broken every class in the world that implemented it. `default` methods provide a backward-compatible way to add new functionality to interfaces by providing a default implementation that existing classes can inherit automatically. This was crucial for adding methods like `forEach` and `stream` to the Collections API.
+2. **Explain the relationship between a Functional Interface, a Lambda Expression, and a Method Reference.**
+    >They are three parts of the same mechanism. A **Functional Interface** is the *target type*—it defines the contract with its single abstract method. A **Lambda Expression** is the *implementation*—it's an anonymous function that provides the code to fulfill that contract. A **Method Reference** is a *syntactic shortcut* for a lambda that does nothing but call an existing named method. You use a method reference (`System.out::println`) when you have a pre-existing method that perfectly matches the required signature, as it's more readable than the equivalent lambda (`s -> System.out.println(s)`).
+3. **The Streams API is described as 'lazy'. What does this mean, and what is the role of intermediate vs. terminal operations?**
+    >Laziness means that intermediate operations (`filter`, `map`, `sorted`) do not execute when they are declared. They merely build up a recipe for the computation. The computation is only triggered when a **terminal operation** (`collect`, `forEach`, `reduce`) is invoked. This allows the stream pipeline to perform optimizations, such as combining operations (fusion) or processing just enough data to satisfy a short-circuiting operation like `findFirst`.
+4. **Why are records considered a better choice than a traditional class for Data Transfer Objects (DTOs)?**
+    >Records are superior for DTOs because they are designed to be simple, **immutable data carriers**. A `record` declaration is incredibly concise, yet the compiler automatically generates the canonical constructor, `equals()`, `hashCode()`, `toString()`, and accessor methods. This eliminates boilerplate and reduces the chance of errors. Their inherent immutability makes them automatically thread-safe and predictable.
+5. **How does `Optional` improve on traditional `null` checking? What is the correct way to use it?**
+    >`Optional` improves on `null` checking by making the potential absence of a value an explicit part of the method's public contract. It forces the calling code to consciously handle the "empty" case, preventing `NullPointerExceptions`. The correct way to use it is *never* to call `.get()` without first checking `.isPresent()`. Better yet, use functional methods like `.ifPresent(value -> ...)`, `.orElse(defaultValue)`, or `.orElseThrow(() -> new Exception())` to handle both cases gracefully.
+6. **Explain how Virtual Threads aim to solve the scalability problem of the 'thread-per-request' model.**
+    >In the traditional 'thread-per-request' model, each request is mapped to a heavy, OS-level platform thread. Since platform threads are a scarce resource, the system can only handle a few thousand concurrent requests before being overwhelmed. **Virtual threads** break this 1:1 mapping. They are lightweight threads managed by the JVM, not the OS. Millions of virtual threads can run on a small pool of platform threads. When a virtual thread executes blocking I/O (like a database call), it "unmounts" from its platform thread, freeing it to run another virtual thread. This allows for massive scalability with a simple, imperative coding style.
+7. **What is 'classpath hell,' and how does the Java Platform Module System (Project Jigsaw) address it?**
+    >'Classpath hell' refers to a set of problems arising from the flat, linear classpath, including version conflicts, hard-to-diagnose missing dependencies, and weak encapsulation. **Project Jigsaw** solves this by introducing a module system. Each module explicitly declares its dependencies (`requires`) and the packages it makes public (`exports`). This creates a reliable configuration, enables strong encapsulation (hiding internal implementation details), and prevents conflicts by ensuring a module reads a dependency from exactly one other module.
+8. **Describe how Pattern Matching for `switch` can lead to more maintainable data processing code.**
+    >Pattern Matching transforms `switch` from a simple value-checker into a sophisticated, declarative data deconstructor. You can `switch` on an object and have `case` labels that match based on type (`case String s`), and even deconstruct records (`case User(var name, var email)`). This eliminates long chains of `if-else-if (instanceof ...)` blocks, making the code flatter, more readable, and safer, as the compiler can check for exhaustiveness.
+9. **What is Structured Concurrency, and how does it improve upon older models like `CompletableFuture`?**
+    >Structured Concurrency ensures that if a task splits into concurrent subtasks, they all run within a confined lexical scope. This guarantees that the parent task only completes after all its children have completed. This model simplifies error handling and cancellation. If one subtask fails, the entire scope can be cancelled immediately, preventing resource leaks and wasted work. `CompletableFuture` is unstructured; a future can outlive its creator, making cancellation and error propagation complex and manual.
+10. **When should you use `var`, and when should you avoid it for code clarity?**
+    >Use `var` when the type of the variable is obvious from the right-hand side of the expression, such as in `var user = new User();` or `var users = new ArrayList<User>()`. This reduces verbosity. **Avoid `var`** when it would obscure the type, especially when the right-hand side is a factory method with a non-obvious return type (e.g., `var result = dataProcessor.process()`) or when you want to program to an interface (e.g., `List<User> users = new ArrayList<>();` is often clearer than `var users = ...`). The goal is to improve readability, not just to save keystrokes.
 
-#### **Common Interview Questions (Practical/Coding)**
+### Common Interview Questions (Practical/Coding)
 
 1. **Task: Refactor to Modern Java**
     * **Problem:** You are given the following legacy code. Refactor it using modern Java features like Streams, Records, and Optionals to make it cleaner and more robust.
@@ -817,7 +797,7 @@ public class DashboardService {
 
     * **Thought Process:** This is a classic use case for structured concurrency. The `StructuredTaskScope.ShutdownOnFailure` provides the exact semantics we need: "all or nothing." By `fork`-ing both tasks, they are submitted to run in parallel on virtual threads. The `scope.join()` call waits for completion. Critically, `scope.throwIfFailed()` checks the result and re-throws any exception from the failed sub-task, ensuring the calling method receives a clear error signal.
 
-#### **System Design Scenarios**
+### System Design Scenarios
 
 1. **Scenario: High-Throughput API Gateway**
     * **Question:** You need to design an API gateway that handles 50,000 concurrent requests. Each request requires aggregating data from 3-5 downstream microservices via blocking I/O calls. How would you design the concurrency model and data handling to ensure high throughput and low latency?
@@ -837,6 +817,4 @@ public class DashboardService {
 5. `com.rules.plugin.a`, `com.rules.plugin.b`: Each third-party validation rule is a separate module. Each one `requires com.engine.api` and `provides ValidationRule with com.rules.plugin.a.MyRuleImpl`.
         * **Plugin Loading:** The core engine will use the `java.util.ServiceLoader` API to discover and load all available implementations of the `ValidationRule` interface at runtime.
         * **Security \& Encapsulation:** The module system provides the security. Because the `com.engine.core` module does not `export` its internal packages, a malicious or poorly written plugin module (`com.rules.plugin.a`) cannot physically access the `ConnectionPool` class, even with reflection. The module boundary is enforced by the JVM, providing robust and reliable encapsulation.
-
-This completes your curriculum. You have progressed from the fundamental "why" to the most advanced practical applications. The key now is to practice—write code, refactor old projects, and explain these concepts to others. Good luck.
 
