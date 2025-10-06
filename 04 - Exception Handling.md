@@ -328,11 +328,9 @@ class UserProfile {}
 
 ***
 
-#### **3. Multi-catch Block**
+### **3. Multi-catch Block**
 
 Introduced in Java 7, the multi-catch feature allows you to catch several different exception types in a single `catch` block, reducing code duplication when the handling logic is the same for all of them.
-
-**In-Depth Explanation:**
 
 Before Java 7, if you had multiple exceptions that required the same handling logic (e.g., logging the error and aborting), you had to either write separate `catch` blocks for each or catch a common parent class (like `Exception`), which could be too broad.
 
@@ -368,11 +366,9 @@ public class MultiCatchExample {
 
 ***
 
-#### **4. Suppressed Exceptions**
+### **4. Suppressed Exceptions**
 
 This is a more advanced concept, directly related to the `try-with-resources` statement. It addresses a specific, tricky scenario: what happens if an exception is thrown inside the `try` block, and *then another exception is thrown* when trying to automatically close the resource?
-
-**In-Depth Explanation:**
 
 In a traditional `finally` block, if the `try` block throws Exception A, and then the `finally` block throws Exception B while cleaning up, Exception A is lost forever. The method exits with Exception B, and you lose the original cause of the problem.
 
@@ -443,19 +439,11 @@ Notice how the primary exception from `process()` was caught, and the exception 
 
 ***
 
-This completes the intermediate module. These concepts give you a much finer degree of control over your error-handling logic. Take your time with them, especially exception chaining and suppressed exceptions. When you're ready to move on, say **"continue"** for the Advanced module.
-
----
-
-# continue
-
-Excellent. You've mastered the tools. Now, let's focus on the craftsmanship. This module is what separates a good developer from a great one. It's not about learning new keywords, but about developing the judgment to use the tools effectively.
-
-### **Module 4: The Core Curriculum (Advanced)**
+## 4. The Core Curriculum (Advanced)
 
 In this module, we will synthesize everything we've learned into a set of guiding principles. These best practices are the key to writing professional-grade, maintainable, and resilient code.
 
-#### **Best Practices for Exception Handling**
+### **Best Practices for Exception Handling**
 
 Mastering these principles will ensure your exception handling strategy is a strength of your application, not a source of hidden bugs.
 
@@ -635,47 +623,32 @@ public User findById(long id) throws UserNotFoundException {
 }
 ```
 
+## Interview Mastery
 
-***
-
-This completes our core curriculum. You've gone from the fundamentals to the design principles that guide expert engineers. Internalize these practices, and you'll be well on your way to mastery.
-
-When you're ready, say **"continue"** and we'll enter the final module: preparing you for technical interviews.
-
----
-
-# continue
-
-Excellent. You've been diligent and have absorbed the core theory and advanced practices. Now, let's sharpen that knowledge for a real-world test: the technical interview. This module is designed to help you articulate your expertise under pressure.
-
-### **Module 5: Expert - Interview Mastery**
-
-An interview isn't just about knowing the right answer; it's about demonstrating deep understanding, clear thinking, and an awareness of trade-offs.
-
-#### **Common Interview Questions (Theory)**
+### **Common Interview Questions (Theory)**
 
 Here are the conceptual questions you are most likely to face. Practice answering them concisely and accurately.
 
 1. **Q: What is the fundamental difference between a Checked and an Unchecked Exception?**
-    * **A:** The fundamental difference lies in intent and compiler enforcement. **Checked exceptions** represent recoverable conditions that are external to the application (e.g., file not found, network error). The compiler forces the programmer to handle them with a `try-catch` or by declaring them with `throws`, ensuring that predictable problems are addressed. **Unchecked (Runtime) exceptions** represent internal programming errors or bugs (e.g., `NullPointerException`, `ArrayIndexOutOfBoundsException`). The compiler does not force handling because the correct solution is to fix the underlying code, not to catch the bug.
+    > The fundamental difference lies in intent and compiler enforcement. **Checked exceptions** represent recoverable conditions that are external to the application (e.g., file not found, network error). The compiler forces the programmer to handle them with a `try-catch` or by declaring them with `throws`, ensuring that predictable problems are addressed. **Unchecked (Runtime) exceptions** represent internal programming errors or bugs (e.g., `NullPointerException`, `ArrayIndexOutOfBoundsException`). The compiler does not force handling because the correct solution is to fix the underlying code, not to catch the bug.
 2. **Q: When would you create a custom exception?**
-    * **A:** You create a custom exception to improve code clarity and add domain-specific context to an error condition. Instead of throwing a generic `IllegalArgumentException`, you could throw a more descriptive `InsufficientBalanceException`. This makes the code self-documenting and allows for more specific `catch` blocks that can handle business-level errors gracefully.
+    > You create a custom exception to improve code clarity and add domain-specific context to an error condition. Instead of throwing a generic `IllegalArgumentException`, you could throw a more descriptive `InsufficientBalanceException`. This makes the code self-documenting and allows for more specific `catch` blocks that can handle business-level errors gracefully.
 3. **Q: What is the purpose of the `finally` block? When is it not executed?**
-    * **A:** The `finally` block's primary purpose is to guarantee the execution of cleanup code, like closing resources, regardless of whether an exception was thrown or not. It is *almost* always executed. The only times it won't run are if the thread is terminated by `System.exit()`, if the JVM crashes, or if an infinite loop in the `try` or `catch` block prevents it from ever being reached.
+    > The `finally` block's primary purpose is to guarantee the execution of cleanup code, like closing resources, regardless of whether an exception was thrown or not. It is *almost* always executed. The only times it won't run are if the thread is terminated by `System.exit()`, if the JVM crashes, or if an infinite loop in the `try` or `catch` block prevents it from ever being reached.
 4. **Q: Why is `try-with-resources` generally preferred over `try-finally`?**
-    * **A:** It's preferred for three main reasons: **1) Readability and Brevity:** It eliminates the need for a boilerplate `finally` block, making the code cleaner. **2) Safety:** It prevents subtle bugs where a developer might forget to close a resource. **3) Suppressed Exceptions:** It correctly handles the complex scenario where both the `try` block and the cleanup (`close()`) method throw exceptions, preserving the original error instead of overwriting it.
+   > It's preferred for three main reasons: **1) Readability and Brevity:** It eliminates the need for a boilerplate `finally` block, making the code cleaner. **2) Safety:** It prevents subtle bugs where a developer might forget to close a resource. **3) Suppressed Exceptions:** It correctly handles the complex scenario where both the `try` block and the cleanup (`close()`) method throw exceptions, preserving the original error instead of overwriting it.
 5. **Q: Explain the "Throw Early, Catch Late" principle.**
-    * **A:** "Throw Early" means a method should validate its inputs and state at the beginning and fail immediately if something is wrong, preventing the system from operating on bad data. "Catch Late" means that the responsibility for handling the exception should be pushed up the call stack to a higher-level component that has the business context to make an intelligent decision—like a service layer that can retry an operation or a UI controller that can display a user-friendly error message.
+   > "Throw Early" means a method should validate its inputs and state at the beginning and fail immediately if something is wrong, preventing the system from operating on bad data. "Catch Late" means that the responsibility for handling the exception should be pushed up the call stack to a higher-level component that has the business context to make an intelligent decision—like a service layer that can retry an operation or a UI controller that can display a user-friendly error message.
 6. **Q: What's the danger of catching `java.lang.Exception`?**
-    * **A:** The danger is that you might unintentionally catch unchecked exceptions like `NullPointerException` and treat them as recoverable errors. This masks bugs in your code, making them harder to find and fix. It violates the principle of being specific in your `catch` blocks.
+   > The danger is that you might unintentionally catch unchecked exceptions like `NullPointerException` and treat them as recoverable errors. This masks bugs in your code, making them harder to find and fix. It violates the principle of being specific in your `catch` blocks.
 7. **Q: What is Exception Chaining and why is it useful?**
-    * **A:** Exception chaining is the practice of catching a low-level exception and wrapping it inside a new, higher-level exception before throwing it. It's useful for abstraction. For example, a data access layer can catch a `SQLException` and re-throw it as a `DataAccessException`. This prevents higher-level layers from needing to know about the implementation details (like the fact a SQL database is being used) while preserving the original stack trace as the "cause" for easier debugging.
+   > Exception chaining is the practice of catching a low-level exception and wrapping it inside a new, higher-level exception before throwing it. It's useful for abstraction. For example, a data access layer can catch a `SQLException` and re-throw it as a `DataAccessException`. This prevents higher-level layers from needing to know about the implementation details (like the fact a SQL database is being used) while preserving the original stack trace as the "cause" for easier debugging.
 8. **Q: Can you `throw` an error in a `finally` block? What are the implications?**
-    * **A:** Yes, you can, but it is extremely bad practice. If an exception was already thrown from the `try` or `catch` block, throwing a new one from `finally` will overwrite and discard the original exception, making the root cause of the problem impossible to debug. `try-with-resources` was designed to solve this exact problem via suppressed exceptions.
+   > Yes, you can, but it is extremely bad practice. If an exception was already thrown from the `try` or `catch` block, throwing a new one from `finally` will overwrite and discard the original exception, making the root cause of the problem impossible to debug. `try-with-resources` was designed to solve this exact problem via suppressed exceptions.
 9. **Q: What is the difference between `throw` and `throws`?**
-    * **A:** `throw` is an action—an imperative statement used inside a method to actually create and throw an exception object. `throws` is a declaration—a keyword used in a method's signature to warn callers that the method might produce a certain type of checked exception, delegating the handling responsibility to them.
+   > `throw` is an action—an imperative statement used inside a method to actually create and throw an exception object. `throws` is a declaration—a keyword used in a method's signature to warn callers that the method might produce a certain type of checked exception, delegating the handling responsibility to them.
 10. **Q: How would you handle an exception that you can't recover from but don't want to crash the entire application?**
-    * **A:** The best practice is to catch the specific exception at an appropriate boundary (like a thread's `run` method or a request handler). You should log the exception in detail for later analysis. Then, you might terminate the specific task or request that failed, possibly returning an error state to the user, while allowing the rest of the application to continue running. For example, in a web server, one failed request should not bring down the entire server.
+   > The best practice is to catch the specific exception at an appropriate boundary (like a thread's `run` method or a request handler). You should log the exception in detail for later analysis. Then, you might terminate the specific task or request that failed, possibly returning an error state to the user, while allowing the rest of the application to continue running. For example, in a web server, one failed request should not bring down the entire server.
 
 #### **Common Interview Questions (Practical/Coding)**
 
@@ -799,8 +772,3 @@ class ApiResponse { public static ApiResponse failure() { return new ApiResponse
 5. **Trade-offs:** This design prioritizes **consistency and safety** above all else. Relying on framework-managed transactions adds some overhead but is essential for correctness in financial systems. Implementing idempotency adds complexity to the API contract but is non-negotiable for preventing duplicate transactions.
 
 ***
-
-You have now completed the entire curriculum. We've journeyed from the absolute basics to the principles that guide architectural decisions. You have the knowledge, the code patterns, and the strategic thinking to master exception handling.
-
-Review this final module, practice your answers, and you will be more than prepared. Good luck.
-
